@@ -10,9 +10,14 @@ public class ErrorController : Controller
     {
         return View("Error");
     }
-    public ViewResult NotFound()
+    public async Task<ViewResult> Error404()
     {
         Response.StatusCode = 404;  //you may want to set this to 200
-        return View("NotFound");
+        //return html file
+        var html = await System.IO.File.ReadAllTextAsync("wwwroot/404.html");
+        ViewData["html"] = html;
+        ViewBag.Title = "404";
+        return View("NotFound", html);
     }
+
 }
