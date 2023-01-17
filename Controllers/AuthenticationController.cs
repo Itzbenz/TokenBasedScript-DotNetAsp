@@ -1,13 +1,25 @@
 using Microsoft.AspNetCore.Authentication;
+using TokenBasedScript.Data;
 using TokenBasedScript.Extensions;
 
 namespace TokenBasedScript.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-
+using Stripe;
+using Stripe.Checkout;
 [Route("/")]
 public class AuthenticationController : Controller
 {
+    
+    private readonly MvcContext _context;
+
+    public AuthenticationController(MvcContext context)
+    {
+        _context = context;
+    }
+    
+
+
     [HttpGet("~/signin")]
     public async Task<IActionResult> SignIn() => View("SignIn", await HttpContext.GetExternalProvidersAsync());
 

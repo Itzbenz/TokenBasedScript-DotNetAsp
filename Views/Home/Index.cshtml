@@ -86,11 +86,11 @@
                     <p class="lead">You have @Model.TokenLeft tokens left.</p>
                     @if (Model.TokenLeft <= 0)
                     {
-                        <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Buy more tokens</a>
+                        <a href="AddToken" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Buy more tokens</a>
                     }
                     else
                     {
-                        <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Redeem a token</a>
+                        <a href="UseToken" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Redeem a token</a>
                     }
                     
                 }

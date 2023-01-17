@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 
@@ -16,36 +17,58 @@ public class HomeController : Controller
         _logger = logger;
         _context = context;
     }
-
+    [HttpGet("AddToken")]
+    public IActionResult BuyToken()
+    {
+        User? user = GetUser();
+        if (user != null)
+        {
+            user.TokenLeft++;
+            _context.SaveChanges();
+        }
+        //go back home
+        return RedirectToAction("Index", "Home");
+    }
+    
+    [HttpGet("UseToken")]
+    public IActionResult UseToken()
+    {
+        User? user = GetUser();
+        if (user != null)
+        {
+            user.TokenLeft--;
+            _context.SaveChanges();
+        }
+        //go back home
+        return RedirectToAction("Index", "Home");
+    }
+  
+    private User? GetUser()
+    {
+        if (!HttpContext.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier)) return null;
+        //find in database
+        var user = _context.Users.FirstOrDefault(u => u.Snowflake == HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        if (user == null)
+        {
+            //make user
+            user = new User
+            {
+                Snowflake = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Email = HttpContext.User.FindFirstValue(ClaimTypes.Email),
+                EmailConfirmed = HttpContext.User.FindFirstValue(ClaimTypes.Email) != null,
+                UserName = HttpContext.User.FindFirstValue(ClaimTypes.Name),
+                TokenLeft = 0
+            }; 
+            _context.Users.Add(user);
+        }
+        _context.SaveChanges();
+        return user;
+    }
     public IActionResult Index()
     {
-        //check if logged in to OAuth
-        // Claims email
-        if(HttpContext.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier))
-        {
-            //find in database
-            var user = _context.Users.FirstOrDefault(u => u.Snowflake == HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-            if (user == null)
-            {
-                //make user
-                user = new User
-                {
-                    Snowflake = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    Email = HttpContext.User.FindFirstValue(ClaimTypes.Email),
-                    UserName = HttpContext.User.FindFirstValue(ClaimTypes.Name),
-                    CreatedDate = DateTime.Now,
-                    LastLogin = DateTime.Now,
-                    TokenLeft = 0
-                }; 
-                _context.Users.Add(user);
-            }
-            //assign user
-            user.LastLogin = DateTime.Now;
-            _context.SaveChanges();
-            return View(user);
-        }
-        //if not logged in, redirect to login page
-        return View();
+       
+       User? user = GetUser();
+       return View(user);
     }
 
     public IActionResult Privacy()

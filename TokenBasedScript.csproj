@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SQLite" Version="7.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0" />
+    <PackageReference Include="Stripe.net" Version="41.5.0-beta.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,7 +32,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Middleware" />
     <Folder Include="Migrations" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Views\User\Create.cshtml" />
+    <UpToDateCheckInput Remove="Views\User\Delete.cshtml" />
+    <UpToDateCheckInput Remove="Views\User\Details.cshtml" />
+    <UpToDateCheckInput Remove="Views\User\Edit.cshtml" />
+    <UpToDateCheckInput Remove="Views\User\Index.cshtml" />
   </ItemGroup>
 
 </Project>

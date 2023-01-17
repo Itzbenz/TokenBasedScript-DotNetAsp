@@ -1,7 +1,17 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using TokenBasedScript.Data;
 using Microsoft.Extensions.DependencyInjection;
+
+var requiredEnvironment = new[] {"DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "STRIPE_API_SECRET"};
+foreach (string env in requiredEnvironment)
+{
+    if (Environment.GetEnvironmentVariable(env) == null)
+    {
+        throw new Exception($"Environment variable {env} is not set.");
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,8 +39,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddDiscord(options =>
     {
-        options.ClientId = "1064116627366481961";
-        options.ClientSecret = "wEtnRkdogXKVW2y8xbwGnPxl-rcpsnoC";
+       
+        options.ClientId = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID");
+        options.ClientSecret =  Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET");
         options.Scope.Add("identify");
         options.Scope.Add("email");
     });
