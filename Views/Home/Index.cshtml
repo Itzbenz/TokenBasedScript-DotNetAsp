@@ -83,13 +83,25 @@
                 @if(Model?.UserName != null)
                 {
                     <h1 class="display-4 fw-bold lh-1 mb-3">Welcome back, @Model.UserName!</h1>
+                    <p class="lead">You have @Model.TokenLeft tokens left.</p>
+                    @if (Model.TokenLeft <= 0)
+                    {
+                        <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Buy more tokens</a>
+                    }
+                    else
+                    {
+                        <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Redeem a token</a>
+                    }
+                    
                 }
                 else
                 {
                     <h1 class="display-4 fw-bold lh-1 mb-3">Welcome to Stride!</h1>
+                    <p class="lead">To be honest, this is just a stupid placeholder text. We don´t know how to sell anything, not even lesser or slower as you.</p>
+                    <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Get started free</a>
                 }
-                <p class="lead">To be honest, this is just a stupid placeholder text. We don´t know how to sell anything, not even lesser or slower as you.</p>
-                <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Get started free</a>
+                
+                
             </div>
 
 
