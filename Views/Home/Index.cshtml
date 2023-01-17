@@ -1,4 +1,5 @@
-﻿@{
+﻿@model TokenBasedScript.Models.User
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -51,7 +52,7 @@
                 </ul>
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
-                    <a class="btn btn-lg btn-danger" href="/signout?returnUrl=%2F">Sign out</a>
+                    <a class="link-dark pb-1 link-fancy me-2" href="/signout?returnUrl=%2F">Sign out</a>
                 }
                 else
                 {
@@ -79,7 +80,14 @@
         <div class="row">
 
             <div class="col-lg-7 py-vh-6 position-relative" data-aos="fade-right">
-                <h1 class="display-1 fw-bold mt-5">Sell more useless stuff faster!</h1>
+                @if(Model?.UserName != null)
+                {
+                    <h1 class="display-4 fw-bold lh-1 mb-3">Welcome back, @Model.UserName!</h1>
+                }
+                else
+                {
+                    <h1 class="display-4 fw-bold lh-1 mb-3">Welcome to Stride!</h1>
+                }
                 <p class="lead">To be honest, this is just a stupid placeholder text. We don´t know how to sell anything, not even lesser or slower as you.</p>
                 <a href="#" class="btn btn-dark btn-xl shadow me-3 rounded-0 my-5">Get started free</a>
             </div>

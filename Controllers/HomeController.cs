@@ -42,8 +42,7 @@ public class HomeController : Controller
             //assign user
             user.LastLogin = DateTime.Now;
             _context.SaveChanges();
-            //assign user to session
-            
+            return View(user);
         }
         //if not logged in, redirect to login page
         return View();
