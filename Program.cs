@@ -1,23 +1,21 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using TokenBasedScript.Data;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddDbContext<MvcMovieContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("MvcMovieContext"))
-        );
-}
+    builder.Services.AddDbContext<MvcContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("MvcContext"))
+    );
 else
-{
-    builder.Services.AddDbContext<MvcMovieContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("ProductionMvcMovieContext")));
-}
-
+    builder.Services.AddDbContext<MvcContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("ProductionMvcContext")));
 
 
 builder.Services.AddAuthentication(options =>
@@ -31,7 +29,6 @@ builder.Services.AddAuthentication(options =>
     })
     .AddDiscord(options =>
     {
-        
         options.ClientId = "1064116627366481961";
         options.ClientSecret = "wEtnRkdogXKVW2y8xbwGnPxl-rcpsnoC";
         options.Scope.Add("identify");
@@ -40,12 +37,13 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.UseExceptionHandler("/Home/Error");
+    var db = scope.ServiceProvider.GetRequiredService<MvcContext>();
+    db.Database.Migrate();
 }
-
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment()) app.UseExceptionHandler("/Home/Error");
 
 
 app.UseStaticFiles();
@@ -55,12 +53,12 @@ app.UseRouting();
 app.UseAuthorization();
 app.UseAuthentication();
 app.UseStatusCodePagesWithReExecute("/Error/Error{0}");
-app.UseCookiePolicy(new CookiePolicyOptions()
+app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.Lax
 });
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    "default",
+    "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -12,19 +12,22 @@ namespace TokenBasedScript.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Movie",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Title = table.Column<string>(type: "TEXT", nullable: true),
-                    ReleaseDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Genre = table.Column<string>(type: "TEXT", nullable: true),
-                    Price = table.Column<decimal>(type: "TEXT", nullable: false)
+                    Snowflake = table.Column<string>(type: "TEXT", nullable: true),
+                    UserName = table.Column<string>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TokenLeft = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Movie", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
         }
 
@@ -32,7 +35,7 @@ namespace TokenBasedScript.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Movie");
+                name: "Users");
         }
     }
 }

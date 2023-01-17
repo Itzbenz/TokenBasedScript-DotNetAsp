@@ -3,40 +3,52 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using TokenBasedScript.Data;
 
 #nullable disable
 
 namespace TokenBasedScript.Migrations
 {
-    [DbContext(typeof(MvcMovieContext))]
-    partial class MvcMovieContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(MvcContext))]
+    partial class MvcContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.2");
 
-            modelBuilder.Entity("TokenBasedScript.Models.Movie", b =>
+            modelBuilder.Entity("TokenBasedScript.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Genre")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Price")
+                    b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("ReleaseDate")
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastLogin")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Snowflake")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TokenLeft")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movie");
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
