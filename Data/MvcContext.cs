@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using TokenBasedScript.Models;
-
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace TokenBasedScript.Data;
 
-public class MvcContext : DbContext
+public class MvcContext : IdentityDbContext<User>
 {
     public MvcContext(DbContextOptions<MvcContext> options)
         : base(options)

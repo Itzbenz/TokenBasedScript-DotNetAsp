@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
+using TokenBasedScript.Services;
 
 namespace TokenBasedScript.Controllers;
 
@@ -11,16 +13,19 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly MvcContext _context;
-
-    public HomeController(MvcContext context, ILogger<HomeController> logger)
+    private readonly IGiveUser _giveUser;
+    public HomeController(MvcContext context, ILogger<HomeController> logger, IGiveUser giveUser)
     {
         _logger = logger;
         _context = context;
+        _giveUser = giveUser;
     }
+
+    
     [HttpGet("AddToken")]
-    public IActionResult BuyToken()
+    public async Task<IActionResult> BuyTokenAsync()
     {
-        User? user = GetUser();
+        User? user = await _giveUser.GetUser();
         if (user != null)
         {
             user.TokenLeft++;
@@ -31,9 +36,9 @@ public class HomeController : Controller
     }
     
     [HttpGet("UseToken")]
-    public IActionResult UseToken()
+    public async Task<IActionResult> UseTokenAsync()
     {
-        User? user = GetUser();
+        User? user = await _giveUser.GetUser();
         if (user != null)
         {
             user.TokenLeft--;
@@ -43,31 +48,11 @@ public class HomeController : Controller
         return RedirectToAction("Index", "Home");
     }
   
-    private User? GetUser()
+  
+
+    public async Task<IActionResult> Index()
     {
-        if (!HttpContext.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier)) return null;
-        //find in database
-        var user = _context.Users.FirstOrDefault(u => u.Snowflake == HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        if (user == null)
-        {
-            //make user
-            user = new User
-            {
-                Snowflake = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
-                Email = HttpContext.User.FindFirstValue(ClaimTypes.Email),
-                EmailConfirmed = HttpContext.User.FindFirstValue(ClaimTypes.Email) != null,
-                UserName = HttpContext.User.FindFirstValue(ClaimTypes.Name),
-                TokenLeft = 0
-            }; 
-            _context.Users.Add(user);
-        }
-        _context.SaveChanges();
-        return user;
-    }
-    public IActionResult Index()
-    {
-       
-       User? user = GetUser();
+       User? user = await _giveUser.GetUser();
        return View(user);
     }
 

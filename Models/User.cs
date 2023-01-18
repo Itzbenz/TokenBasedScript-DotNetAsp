@@ -14,7 +14,7 @@ using System.ComponentModel.DataAnnotations;
       
         public bool IsAdmin { get; set; }
 
-        public int TokenLeft { get; set; }
+        public long TokenLeft { get; set; }
 
 
         public DateTime DateCreated { get; set; }

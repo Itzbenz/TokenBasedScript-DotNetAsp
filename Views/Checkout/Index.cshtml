@@ -1,18 +1,39 @@
-@model TModel
+@model User
 
 @{
-    Layout = null;
+    ViewData["Title"] = "Checkout";
 }
 
-<!DOCTYPE html>
-
-<html>
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
+<main>
+   <div class="h-100 container-fluid">
+      <div class="h-100 row d-flex align-items-stretch">
+         <div class="col-12 col-md-7 col-lg-6 d-flex align-items-start flex-column px-vw-5">
+            <header class="mb-auto py-vh-2 col-12">
+               <a class="navbar-brand pe-4 fs-4" href="/">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-layers-half" viewbox="0 0 16 16">
+                     <path d="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882l-7.5-4zM8 9.433 1.562 6 8 2.567 14.438 6 8 9.433z"/>
+                  </svg>
+                  <span class="ms-1 fw-bolder">Stride</span>
+               </a>
+            </header>
+            <main class="mb-auto col-12">
+               <h1>Buy Token</h1>
+               <form class="row" method="post" action="/checkout">
+                  <div class="col-12">
+                     <div class="mb-3">
+                        <label for="amount">Amount</label>
+                        <input type="number" class="form-control form-control-lg" id="amount" name="amount" placeholder="1" defaultValue="1" value="1" aria-describedby="amountHelp">
+                        <div id="amountHelp" class="form-text">Amount of token to buy</div>
+                     </div>
       
-</div>
-</body>
-</html>
+                     <button type="submit" class="btn btn-primary btn-xl mb-4">Buy</button>
+                     <p class="small text-muted border-top py-2">Psssst! By creating an account you agree to our well hidden terms of service. They are here...somewhere...for legal reasons...but you would not find ´em!</p>
+                  </div>
+               </form>
+            </main>
+         </div>
+         <div class="col-12 col-md-5 col-lg-6 bg-cover" style="background-image: url('./img/webp/colorful.webp');"></div>
+      </div>
+   </div>
+</main>
+@Html.Partial("_Footer")

@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using TokenBasedScript.Data;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using TokenBasedScript.Models;
+using TokenBasedScript.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-var requiredEnvironment = new[] {"DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "STRIPE_API_SECRET"};
+var requiredEnvironment = new[] { "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "STRIPE_API_SECRET", "STRIPE_WEBHOOK_SECRET"};
 foreach (string env in requiredEnvironment)
 {
     if (Environment.GetEnvironmentVariable(env) == null)
@@ -14,7 +18,6 @@ foreach (string env in requiredEnvironment)
 }
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -28,9 +31,11 @@ else
         options.UseSqlServer(builder.Configuration.GetConnectionString("ProductionMvcContext")));
 
 
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
     })
     .AddCookie(options =>
     {
@@ -39,13 +44,17 @@ builder.Services.AddAuthentication(options =>
     })
     .AddDiscord(options =>
     {
-       
+
         options.ClientId = Environment.GetEnvironmentVariable("DISCORD_CLIENT_ID");
-        options.ClientSecret =  Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET");
+        options.ClientSecret = Environment.GetEnvironmentVariable("DISCORD_CLIENT_SECRET");
+        options.AccessDeniedPath = "/";
         options.Scope.Add("identify");
         options.Scope.Add("email");
     });
 
+builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+builder.Services.AddScoped<IGiveUser, GiveUser>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -56,7 +65,7 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment()) app.UseExceptionHandler("/Home/Error");
 
-
+Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_API_SECRET")!;
 app.UseStaticFiles();
 
 app.UseRouting();
