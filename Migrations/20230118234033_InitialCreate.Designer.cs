@@ -11,7 +11,7 @@ using TokenBasedScript.Data;
 namespace TokenBasedScript.Migrations
 {
     [DbContext(typeof(MvcContext))]
-    [Migration("20230118041357_InitialCreate")]
+    [Migration("20230118234033_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -146,28 +146,6 @@ namespace TokenBasedScript.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("TokenBasedScript.Models.Order", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("Quantity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserSnowflake")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("TokenBasedScript.Models.User", b =>

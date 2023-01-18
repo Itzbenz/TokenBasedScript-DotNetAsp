@@ -11,7 +11,6 @@ public class MvcContext : IdentityDbContext<User>
     }
 
     public DbSet<User> Users { get; set; }
-    public DbSet<Order> Orders { get; set; }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = new())

@@ -145,28 +145,6 @@ namespace TokenBasedScript.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TokenBasedScript.Models.Order", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("Quantity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserSnowflake")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Orders");
-                });
-
             modelBuilder.Entity("TokenBasedScript.Models.User", b =>
                 {
                     b.Property<string>("Id")

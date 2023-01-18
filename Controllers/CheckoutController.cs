@@ -46,7 +46,7 @@ public class CheckoutController : Controller
                   new SessionLineItemOptions
                   {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    Price = "price_1MREIoAhCptZIZVqk9UMkgAX",
+                    Price = Environment.GetEnvironmentVariable("STRIPE_PRICE_ID")!,
                     Quantity = amount,
                   },
                 },

@@ -8,7 +8,7 @@ using TokenBasedScript.Models;
 using TokenBasedScript.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-var requiredEnvironment = new[] { "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "STRIPE_API_SECRET", "STRIPE_WEBHOOK_SECRET"};
+var requiredEnvironment = new[] { "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "STRIPE_API_SECRET", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_ID"};
 foreach (string env in requiredEnvironment)
 {
     if (Environment.GetEnvironmentVariable(env) == null)
