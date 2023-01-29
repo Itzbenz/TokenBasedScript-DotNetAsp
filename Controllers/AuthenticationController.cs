@@ -10,32 +10,35 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
+
 [Route("/")]
 public class AuthenticationController : Controller
 {
-    
     private readonly MvcContext _context;
+    private readonly IConfiguration _config;
 
-    public AuthenticationController(MvcContext context)
+    public AuthenticationController(MvcContext context, IConfiguration config)
     {
         _context = context;
-        
+        _config = config;
     }
-    
 
 
     [HttpGet("~/signin")]
-    public async Task<IActionResult> SignIn([FromQuery] string ReturnUrl = "/"){
+    public async Task<IActionResult> SignIn([FromQuery] string ReturnUrl = "/")
+    {
         var providers = await HttpContext.GetExternalProvidersAsync();
         //if only 1 provider, redirect to it
-        if (providers.Count() == 1) {
+        if (providers.Count() == 1)
+        {
             return await SignIn(providers.First().Name, ReturnUrl);
         }
+
         return View("SignIn", providers);
     }
 
     [HttpPost("~/signin")]
-    public async Task<IActionResult> SignIn([FromForm] string provider="Discord", [FromForm] string ReturnUrl = "/")
+    public async Task<IActionResult> SignIn([FromForm] string provider = "Discord", [FromForm] string ReturnUrl = "/")
     {
         // Note: the "provider" parameter corresponds to the external
         // authentication provider choosen by the user agent.
@@ -52,7 +55,7 @@ public class AuthenticationController : Controller
         // Instruct the middleware corresponding to the requested external identity
         // provider to redirect the user agent to its own authorization endpoint.
         // Note: the authenticationScheme parameter must match the value configured in Startup.cs
-        return Challenge(new AuthenticationProperties { RedirectUri = "/login?ReturnUrl=" + ReturnUrl }, provider);
+        return Challenge(new AuthenticationProperties {RedirectUri =  ReturnUrl}, provider);
     }
 
     [HttpGet("~/signout")]
@@ -63,7 +66,7 @@ public class AuthenticationController : Controller
         // when the user agent is redirected from the external identity provider
         // after a successful authentication flow (e.g Google or Facebook).
         //await _signInManager.SignOutAsync();
-        return SignOut(new AuthenticationProperties { RedirectUri = "/" },
+        return SignOut(new AuthenticationProperties {RedirectUri = "/"},
             CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
@@ -71,25 +74,6 @@ public class AuthenticationController : Controller
     [HttpGet("~/login")]
     public async Task<IActionResult> LoginAsync([FromQuery] string ReturnUrl = "/")
     {
-        //check claim
-        var snowflake = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (snowflake == null) return RedirectToAction("Index", "Home");
-        //find user
-        var user = _context.Users.FirstOrDefault(u => u.Snowflake == snowflake);
-        if (user == null)
-        {
-            //make user
-            user = new Models.User
-            {
-                Snowflake = snowflake,
-                Email = User.FindFirstValue(ClaimTypes.Email),
-                EmailConfirmed = HttpContext.User.FindFirstValue(ClaimTypes.Email) != null,
-                UserName = HttpContext.User.FindFirstValue(ClaimTypes.Name),
-                TokenLeft = 0
-            };
-            _context.Users.Add(user);
-            _context.SaveChanges();
-        }
         //sign in
         //await _signInManager.SignInAsync(user, true);
         return Redirect(ReturnUrl);

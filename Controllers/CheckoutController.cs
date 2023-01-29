@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -10,17 +9,21 @@ using TokenBasedScript.Services;
 
 namespace TokenBasedScript.Controllers;
 
+[Authorize(Policy = "LoggedIn")]
 public class CheckoutController : Controller
 {
 
     private readonly MvcContext _context;
      private readonly IGiveUser _giveUser;
-    private readonly string STRIPE_WEBHOOK_SECRET = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")!;
+     private readonly IConfiguration _config;
 
-    public CheckoutController(MvcContext context, IGiveUser giveUser)
+     private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
+
+     public CheckoutController(MvcContext context, IGiveUser giveUser, IConfiguration config)
     {
         _context = context;
         _giveUser = giveUser;
+        _config = config;
     }
    
     public async Task<IActionResult> IndexAsync()
@@ -35,18 +38,19 @@ public class CheckoutController : Controller
     {
         User? user = await _giveUser.GetUser();
         if(user == null) return RedirectToAction("Index", "Home");
-        var client_reference_id = user.Snowflake;
+        var clientReferenceId = user.Snowflake;
         var domain = Request.Scheme + "://" + Request.Host.Value + "/";
         var options = new SessionCreateOptions
         {
             
-            ClientReferenceId = client_reference_id,
+            ClientReferenceId = clientReferenceId,
+            CustomerEmail = user.Email,
             LineItems = new List<SessionLineItemOptions>
                 {
                   new SessionLineItemOptions
                   {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    Price = Environment.GetEnvironmentVariable("STRIPE_PRICE_ID")!,
+                    Price = _config.GetValue<string>("Stripe:Price:ID"),
                     Quantity = amount,
                   },
                 },
@@ -60,7 +64,9 @@ public class CheckoutController : Controller
         Response.Headers.Add("Location", session.Url);
         return new StatusCodeResult(303);
     }
+    //stripe listen --forward-to http://localhost:5192/api/stripe/webhook
     [HttpPost("/api/stripe/webhook")]
+    [AllowAnonymous]
     public async Task<IActionResult> StripeWebhook()
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
@@ -70,7 +76,7 @@ public class CheckoutController : Controller
             var stripeEvent = EventUtility.ConstructEvent(
                 json,
                 Request.Headers["Stripe-Signature"],
-                STRIPE_WEBHOOK_SECRET
+                StripeWebhookSecret
             );
             // Handle the checkout.session.completed event
             if (stripeEvent.Type == Events.CheckoutSessionCompleted)
@@ -83,11 +89,11 @@ public class CheckoutController : Controller
                 // Retrieve the session. If you require line items in the response, you may include them by expanding line_items.
                 Session sessionWithLineItems = service.Get(session.Id, options);
                 StripeList<LineItem> lineItems = sessionWithLineItems.LineItems;
-                var client_reference_id = session.ClientReferenceId;
-                if(client_reference_id == null)
+                var clientReferenceId = session.ClientReferenceId;
+                if(clientReferenceId == null)
                     return BadRequest("Client reference id is null. This is probably because the user is not logged in.");
                 // Fulfill the purchase...
-                this.FulfillOrder(lineItems, client_reference_id);
+                this.FulfillOrder(lineItems, clientReferenceId);
             }
             return Ok();
         }
@@ -97,19 +103,17 @@ public class CheckoutController : Controller
         }
     }
 
-    private void FulfillOrder(StripeList<LineItem> lineItems, string client_reference_id)
+    private void FulfillOrder(StripeList<LineItem> lineItems, string clientReferenceId)
     {
         //find by snowflake
-        User? user = _context.Users.FirstOrDefault(u => u.Snowflake == client_reference_id);
-        if (user == null || user.Snowflake == null)
-            throw new Exception("User not found: " + client_reference_id);
+        User? user = _context.Users.FirstOrDefault(u => u.Snowflake == clientReferenceId);
+        if (user?.Snowflake == null)
+            throw new Exception("User not found: " + clientReferenceId);
         foreach (var item in lineItems)
         {
-            if (item.Description == "Token")
-            {
-                user.TokenLeft += item.Quantity??0;
-                _context.SaveChanges();
-            }
+            if (item.Description != "Token") continue;
+            user.TokenLeft += item.Quantity??0;
+            _context.SaveChanges();
         }
     }
 }

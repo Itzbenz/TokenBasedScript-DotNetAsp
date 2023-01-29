@@ -145,6 +145,64 @@ namespace TokenBasedScript.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("TokenBasedScript.Models.ScriptExecution", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsFinished")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ScriptContent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ScriptName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScriptExecutions");
+                });
+
+            modelBuilder.Entity("TokenBasedScript.Models.ScriptExecution+Status", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ScriptExecutionId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScriptExecutionId");
+
+                    b.ToTable("Status");
+                });
+
             modelBuilder.Entity("TokenBasedScript.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -273,6 +331,27 @@ namespace TokenBasedScript.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TokenBasedScript.Models.ScriptExecution", b =>
+                {
+                    b.HasOne("TokenBasedScript.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TokenBasedScript.Models.ScriptExecution+Status", b =>
+                {
+                    b.HasOne("TokenBasedScript.Models.ScriptExecution", null)
+                        .WithMany("Statuses")
+                        .HasForeignKey("ScriptExecutionId");
+                });
+
+            modelBuilder.Entity("TokenBasedScript.Models.ScriptExecution", b =>
+                {
+                    b.Navigation("Statuses");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TokenBasedScript.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -161,6 +161,50 @@ namespace TokenBasedScript.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ScriptExecutions",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    UserId = table.Column<string>(type: "TEXT", nullable: true),
+                    ScriptName = table.Column<string>(type: "TEXT", nullable: true),
+                    ScriptContent = table.Column<string>(type: "TEXT", nullable: true),
+                    IsSuccess = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsFinished = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DateModified = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScriptExecutions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScriptExecutions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Status",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Message = table.Column<string>(type: "TEXT", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DateModified = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ScriptExecutionId = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Status", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Status_ScriptExecutions_ScriptExecutionId",
+                        column: x => x.ScriptExecutionId,
+                        principalTable: "ScriptExecutions",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -197,6 +241,16 @@ namespace TokenBasedScript.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptExecutions_UserId",
+                table: "ScriptExecutions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Status_ScriptExecutionId",
+                table: "Status",
+                column: "ScriptExecutionId");
         }
 
         /// <inheritdoc />
@@ -218,7 +272,13 @@ namespace TokenBasedScript.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Status");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "ScriptExecutions");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

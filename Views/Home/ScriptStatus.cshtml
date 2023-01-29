@@ -1,0 +1,43 @@
+@model List<ScriptExecution>
+
+@{
+    ViewData["Title"] = "Script Statuses";
+    Layout = "_Layout";
+}
+
+<h2>Script Statuses</h2>
+<div class="card mb-3">
+    @foreach (var scriptExecution in Model)
+    {
+        <div class="card-body">
+            <h5 class="card-title">@scriptExecution.ScriptName</h5>
+            <h6 class="card-subtitle mb-2 text-muted">
+
+                @{
+                    var message = scriptExecution.Statuses.Last().Message;
+                }
+                @if (message != null)
+                {
+                    @(scriptExecution.Statuses.Count > 0 ? message[..Math.Min(message.Length, 20)] : "Not Started")
+                }
+            </h6>         
+            <a href="ScriptStatus/@scriptExecution.Id" class="card-link">Details</a>
+            <p class="card-text">@Html.DisplayFor(model => scriptExecution.DateCreated)</p>
+            @if(scriptExecution.IsFinished)
+            {
+                @if(scriptExecution.IsSuccess)
+                {
+                    <p class="card-text">Success</p>
+                }
+                else
+                {
+                    <p class="card-text">Failed</p>
+                }
+            }
+            else
+            {
+                <p class="card-text">Running</p>
+            }
+        </div>
+    }
+</div>

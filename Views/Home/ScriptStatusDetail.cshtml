@@ -1,0 +1,49 @@
+@model ScriptExecution
+
+@{
+    ViewBag.Title = Model.ScriptName ?? "Not Found";
+    Layout = "_Layout";
+}
+
+@if (Model?.ScriptName == null)
+{
+    <h2>Not Found</h2>
+}
+else
+{
+    <h2 class="card-title">@Model.ScriptName - @Html.DisplayFor(model => model.DateCreated)</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Script Status</h5>
+            @if (Model.IsFinished)
+            {
+                @if (Model.IsSuccess)
+                {
+                    <p class="card-text">Success</p>
+                }
+                else
+                {
+                    <p class="card-text">Failed</p>
+                }
+            }
+            else
+            {
+                <p class="card-text">Running</p>
+            }
+            <h6 class="card-subtitle mb-2 text-muted">Last Modified: @Html.DisplayFor(model => model.DateModified)</h6>
+        </div>
+        @if (Model.Statuses.Count == 0)
+        {
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Not Started</h6>
+            </div>
+        }
+        @foreach (var status in Model.Statuses)
+        {
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">@status.Message</h6>
+                <p class="card-text">@Html.DisplayFor(model => status.DateCreated)</p>
+            </div>
+        }
+    </div>
+}
