@@ -131,7 +131,7 @@ public class HomeController : Controller
                 ScriptContent = scriptContent,
                 User = user,
             });
-            
+
             await _context.SaveChangesAsync();
             ViewData["Info"] = "Queued";
             return Redirect("/ScriptStatus/" + scriptExecutionId);
@@ -156,7 +156,8 @@ public class HomeController : Controller
             throw new Exception("User is null");
         }
 
-        var scriptExecutions = _context.ScriptExecutions.Where(s => s.User == user).Include(item => item.Statuses).ToList();
+        var scriptExecutions = _context.ScriptExecutions.Where(s => s.User == user).Include(item => item.Statuses)
+            .ToList();
         return View(scriptExecutions);
     }
 
@@ -171,7 +172,8 @@ public class HomeController : Controller
             throw new Exception("User is null");
         }
 
-        var scriptExecution = _context.ScriptExecutions.Where(s => s.Id == id).Include(item => item.Statuses).FirstOrDefault();
+        var scriptExecution = _context.ScriptExecutions.Where(s => s.Id == id).Include(item => item.Statuses)
+            .FirstOrDefault();
         if (scriptExecution is null || scriptExecution.User != user)
         {
             return BadRequest();
@@ -182,7 +184,6 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-
         User? user = await _giveUser.GetUser();
         return View(user);
     }

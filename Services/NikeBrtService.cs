@@ -82,6 +82,7 @@ public class NikeBrtService : BackgroundService
     private IServiceProvider Services { get; }
     private static readonly HttpClient Client = new HttpClient();
     private DateTime _lastClean = DateTime.Now;
+
     public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IConfiguration config)
     {
         Services = services;
@@ -157,7 +158,6 @@ public class NikeBrtService : BackgroundService
                             //refund user
                             if (scriptExecution.User != null)
                             {
-
                                 scriptExecution.User.TokenLeft += 1;
                                 _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
                                     scriptExecution.User.Id, id);
@@ -193,11 +193,13 @@ public class NikeBrtService : BackgroundService
                     _logger.LogError("Response: {Response}", content);
                 }
             }
-        }catch(Exception e)
+        }
+        catch (Exception e)
         {
             _logger.LogError(e, "Error while querying Nike Brt Script Queue");
         }
-        if(DateTime.Now - _lastClean > TimeSpan.FromMinutes(5))
+
+        if (DateTime.Now - _lastClean > TimeSpan.FromMinutes(5))
         {
             _lastClean = DateTime.Now;
             _logger.LogInformation("Cleaning stalled executions");
@@ -205,8 +207,9 @@ public class NikeBrtService : BackgroundService
             var stalledExecutions = context.ScriptExecutions
                 .Where(x => !x.IsFinished && x.ScriptName == "NikeBRT")
                 .Include(x => x.User)
-                .ToList(); 
-            foreach (var scriptExecution in stalledExecutions.Where(scriptExecution => !ids.Contains(scriptExecution.Id)))
+                .ToList();
+            foreach (var scriptExecution in stalledExecutions.Where(
+                         scriptExecution => !ids.Contains(scriptExecution.Id)))
             {
                 scriptExecution.IsFinished = true;
                 scriptExecution.IsSuccess = false;
@@ -220,7 +223,7 @@ public class NikeBrtService : BackgroundService
                 {
                     _logger.LogWarning("NikeBrt {Id} has no user associated", scriptExecution.Id);
                 }
-                    
+
                 context.ScriptExecutions.Update(scriptExecution);
             }
         }

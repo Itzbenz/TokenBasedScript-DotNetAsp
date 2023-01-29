@@ -19,13 +19,13 @@
 <main class="mb-auto col-12">
 
 <p class="lead">You have @Model.TokenLeft tokens left.</p>
-@if(ViewData["Error"] != null)
+@if (ViewData["Error"] != null)
 {
     <div class="alert alert-danger" role="alert">
         @ViewData["Error"]
     </div>
 }
-@if(ViewData["Info"] != null)
+@if (ViewData["Info"] != null)
 {
     <div class="alert alert-info" role="alert">
         @ViewData["Info"]

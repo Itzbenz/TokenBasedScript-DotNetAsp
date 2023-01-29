@@ -20,12 +20,12 @@
                 {
                     @(scriptExecution.Statuses.Count > 0 ? message[..Math.Min(message.Length, 20)] : "Not Started")
                 }
-            </h6>         
+            </h6>
             <a href="ScriptStatus/@scriptExecution.Id" class="card-link">Details</a>
             <p class="card-text">@Html.DisplayFor(model => scriptExecution.DateCreated)</p>
-            @if(scriptExecution.IsFinished)
+            @if (scriptExecution.IsFinished)
             {
-                @if(scriptExecution.IsSuccess)
+                @if (scriptExecution.IsSuccess)
                 {
                     <p class="card-text">Success</p>
                 }

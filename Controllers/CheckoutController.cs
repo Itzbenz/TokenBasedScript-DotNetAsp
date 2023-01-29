@@ -12,24 +12,23 @@ namespace TokenBasedScript.Controllers;
 [Authorize(Policy = "LoggedIn")]
 public class CheckoutController : Controller
 {
-
     private readonly MvcContext _context;
-     private readonly IGiveUser _giveUser;
-     private readonly IConfiguration _config;
+    private readonly IGiveUser _giveUser;
+    private readonly IConfiguration _config;
 
-     private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
+    private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
 
-     public CheckoutController(MvcContext context, IGiveUser giveUser, IConfiguration config)
+    public CheckoutController(MvcContext context, IGiveUser giveUser, IConfiguration config)
     {
         _context = context;
         _giveUser = giveUser;
         _config = config;
     }
-   
+
     public async Task<IActionResult> IndexAsync()
     {
         User? user = await _giveUser.GetUser();
-        if(user == null) return RedirectToAction("Index", "Home");
+        if (user == null) return RedirectToAction("Index", "Home");
         return View("Index");
     }
 
@@ -37,23 +36,22 @@ public class CheckoutController : Controller
     public async Task<IActionResult> Checkout([FromForm] int amount)
     {
         User? user = await _giveUser.GetUser();
-        if(user == null) return RedirectToAction("Index", "Home");
+        if (user == null) return RedirectToAction("Index", "Home");
         var clientReferenceId = user.Snowflake;
         var domain = Request.Scheme + "://" + Request.Host.Value + "/";
         var options = new SessionCreateOptions
         {
-            
             ClientReferenceId = clientReferenceId,
             CustomerEmail = user.Email,
             LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
                 {
-                  new SessionLineItemOptions
-                  {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
                     Price = _config.GetValue<string>("Stripe:Price:ID"),
                     Quantity = amount,
-                  },
                 },
+            },
             Mode = "payment",
             SuccessUrl = domain,
             CancelUrl = domain,
@@ -64,6 +62,7 @@ public class CheckoutController : Controller
         Response.Headers.Add("Location", session.Url);
         return new StatusCodeResult(303);
     }
+
     //stripe listen --forward-to http://localhost:5192/api/stripe/webhook
     [HttpPost("/api/stripe/webhook")]
     [AllowAnonymous]
@@ -90,11 +89,13 @@ public class CheckoutController : Controller
                 Session sessionWithLineItems = service.Get(session.Id, options);
                 StripeList<LineItem> lineItems = sessionWithLineItems.LineItems;
                 var clientReferenceId = session.ClientReferenceId;
-                if(clientReferenceId == null)
-                    return BadRequest("Client reference id is null. This is probably because the user is not logged in.");
+                if (clientReferenceId == null)
+                    return BadRequest(
+                        "Client reference id is null. This is probably because the user is not logged in.");
                 // Fulfill the purchase...
                 this.FulfillOrder(lineItems, clientReferenceId);
             }
+
             return Ok();
         }
         catch (StripeException e)
@@ -112,7 +113,7 @@ public class CheckoutController : Controller
         foreach (var item in lineItems)
         {
             if (item.Description != "Token") continue;
-            user.TokenLeft += item.Quantity??0;
+            user.TokenLeft += item.Quantity ?? 0;
             _context.SaveChanges();
         }
     }

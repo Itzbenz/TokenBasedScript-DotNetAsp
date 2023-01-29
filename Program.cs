@@ -11,7 +11,6 @@ using TokenBasedScript.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
@@ -46,7 +45,6 @@ builder.Services.AddAuthentication(options =>
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
-
     })
     .AddCookie(options =>
     {
@@ -55,7 +53,6 @@ builder.Services.AddAuthentication(options =>
     })
     .AddDiscord(options =>
     {
-
         options.ClientId = builder.Configuration["Discord:Client:ID"];
         options.ClientSecret = builder.Configuration["Discord:Client:Secret"];
         options.AccessDeniedPath = "/";
@@ -82,7 +79,6 @@ builder.Services.AddAuthentication(options =>
                         TokenLeft = 0
                     };
                     db.Users.Add(user);
-              
                 }
                 else
                 {
@@ -90,8 +86,8 @@ builder.Services.AddAuthentication(options =>
                     user.Email = context.Principal.FindFirstValue(ClaimTypes.Email);
                     user.EmailConfirmed = context.Principal.FindFirstValue(ClaimTypes.Email) != null;
                     user.UserName = context.Principal.FindFirstValue(ClaimTypes.Name);
-             
                 }
+
                 var identity = context.Principal?.Identity as ClaimsIdentity;
                 //check if id equal admin id on config
                 if (snowflake == config["Discord:User:Admin:ID"] || user.IsAdmin)
@@ -100,10 +96,11 @@ builder.Services.AddAuthentication(options =>
                     identity?.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
                     user.IsAdmin = true;
                 }
+
                 //user role
                 identity?.AddClaim(new Claim(ClaimTypes.Role, "User"));
-                
-                db.SaveChanges();  
+
+                db.SaveChanges();
             }
         };
     });
@@ -119,6 +116,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<MvcContext>();
     db.Database.Migrate();
 }
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

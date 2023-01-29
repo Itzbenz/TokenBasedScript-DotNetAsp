@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TokenBasedScript.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 #pragma warning disable CS8618
 namespace TokenBasedScript.Data;
 
@@ -13,6 +14,7 @@ public class MvcContext : IdentityDbContext<User>
 
     public new DbSet<User> Users { get; set; }
     public DbSet<ScriptExecution> ScriptExecutions { get; set; }
+
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = new())
     {
@@ -20,7 +22,7 @@ public class MvcContext : IdentityDbContext<User>
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
-    
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         SyncObjectsStatePreCommit();
