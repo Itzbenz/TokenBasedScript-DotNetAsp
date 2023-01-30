@@ -18,8 +18,8 @@ Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-var connectionString = builder.Configuration.GetConnectionString("MvcContext");
-if (builder.Environment.IsDevelopment())
+var connectionString = builder.Configuration.GetConnectionString("MvcContext")!;
+if (connectionString.StartsWith("Data Source="))
     builder.Services.AddDbContext<MvcContext>(options =>
         options.UseSqlite(connectionString)
     );
