@@ -8,43 +8,44 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.Discord" Version="6.0.14"/>
-        <PackageReference Include="DotNetBungieAPI.AspNet.Security.OAuth.Providers" Version="1.0.2"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.13"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.13"/>
+        <PackageReference Include="AspNet.Security.OAuth.Discord" Version="6.0.14" />
+        <PackageReference Include="DotNetBungieAPI.AspNet.Security.OAuth.Providers" Version="1.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.13" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.13" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.2">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SQLite" Version="7.0.2"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.2"/>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0"/>
-        <PackageReference Include="Stripe.net" Version="41.5.0-beta.2"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SQLite" Version="7.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.2" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
+        <PackageReference Include="Stripe.net" Version="41.5.0-beta.2" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="wwwroot\404.html"/>
+        <None Include="wwwroot\404.html" />
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="Views\User\Create.cshtml"/>
-        <_ContentIncludedByDefault Remove="Views\User\Delete.cshtml"/>
-        <_ContentIncludedByDefault Remove="Views\User\Details.cshtml"/>
-        <_ContentIncludedByDefault Remove="Views\User\Edit.cshtml"/>
-        <_ContentIncludedByDefault Remove="Views\User\Index.cshtml"/>
+        <_ContentIncludedByDefault Remove="Views\User\Create.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\User\Delete.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\User\Details.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\User\Edit.cshtml" />
+        <_ContentIncludedByDefault Remove="Views\User\Index.cshtml" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Middleware"/>
-        <Folder Include="Migrations"/>
+        <Folder Include="Middleware" />
+        <Folder Include="Migrations" />
     </ItemGroup>
 
     <ItemGroup>
-        <UpToDateCheckInput Remove="Views\User\Create.cshtml"/>
-        <UpToDateCheckInput Remove="Views\User\Delete.cshtml"/>
-        <UpToDateCheckInput Remove="Views\User\Details.cshtml"/>
-        <UpToDateCheckInput Remove="Views\User\Edit.cshtml"/>
-        <UpToDateCheckInput Remove="Views\User\Index.cshtml"/>
+        <UpToDateCheckInput Remove="Views\User\Create.cshtml" />
+        <UpToDateCheckInput Remove="Views\User\Delete.cshtml" />
+        <UpToDateCheckInput Remove="Views\User\Details.cshtml" />
+        <UpToDateCheckInput Remove="Views\User\Edit.cshtml" />
+        <UpToDateCheckInput Remove="Views\User\Index.cshtml" />
     </ItemGroup>
 
 </Project>

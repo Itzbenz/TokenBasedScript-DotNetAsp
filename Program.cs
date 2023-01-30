@@ -2,6 +2,7 @@ using System.Security.Claims;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using TokenBasedScript.Data;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,14 +18,14 @@ Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+var connectionString = builder.Configuration.GetConnectionString("MvcContext");
 if (builder.Environment.IsDevelopment())
     builder.Services.AddDbContext<MvcContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("MvcContext"))
+        options.UseSqlite(connectionString)
     );
 else
     builder.Services.AddDbContext<MvcContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("ProductionMvcContext")));
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddAuthorization(options =>
 {
@@ -123,6 +124,11 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHttpsRedirection();
+    app.UseForwardedHeaders(new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    });
+    
 }
 
 
