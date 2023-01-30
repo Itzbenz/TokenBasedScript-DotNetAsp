@@ -1,7 +1,7 @@
 @model ScriptExecution
 
 @{
-    ViewBag.Title = Model.ScriptName ?? "Not Found";
+    ViewData["Title"] = Model.ScriptName ?? "Not Found";
     Layout = "_Layout";
 }
 

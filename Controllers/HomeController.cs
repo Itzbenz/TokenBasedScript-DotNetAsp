@@ -41,7 +41,7 @@ public class HomeController : Controller
         if (user != null)
         {
             user.TokenLeft++;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         //go back home
@@ -56,7 +56,7 @@ public class HomeController : Controller
         if (user != null)
         {
             user.TokenLeft--;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         //go back home
@@ -68,6 +68,11 @@ public class HomeController : Controller
     public async Task<IActionResult> NikeBrtScriptAsync()
     {
         User? user = await _giveUser.GetUser();
+        if (!NikeBrtService.Online)
+        {
+            ViewData["Error"] = "NikeBRT Executor is currently offline";
+        }
+
         return View(user);
     }
 
@@ -79,6 +84,12 @@ public class HomeController : Controller
     {
         User? user = await _giveUser.GetUser();
         if (user is not {TokenLeft: > 0}) return RedirectToAction("Index", "Home");
+        if (!NikeBrtService.Online)
+        {
+            ViewData["Error"] = "NikeBRT Executor is currently offline";
+            return View(user);
+        }
+        
         //check for form data
         if (orderEmail == null || orderNumber == null || name == null || telephone == null || email == null ||
             mobilePhoneNumber == null || address == null || postCode == null || town == null || district == null)
@@ -131,7 +142,7 @@ public class HomeController : Controller
                 ScriptContent = scriptContent,
                 User = user,
             });
-
+            _context.Update(user);
             await _context.SaveChangesAsync();
             ViewData["Info"] = "Queued";
             return Redirect("/ScriptStatus/" + scriptExecutionId);

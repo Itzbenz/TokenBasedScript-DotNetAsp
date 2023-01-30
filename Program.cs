@@ -60,7 +60,7 @@ builder.Services.AddAuthentication(options =>
         options.Scope.Add("email");
         options.Events = new OAuthEvents()
         {
-            OnTicketReceived = async context =>
+            OnTicketReceived = context =>
             {
                 //Get EF context
                 var db = context.HttpContext.RequestServices.GetRequiredService<MvcContext>();
@@ -76,7 +76,7 @@ builder.Services.AddAuthentication(options =>
                         Email = context.Principal.FindFirstValue(ClaimTypes.Email),
                         EmailConfirmed = context.Principal.FindFirstValue(ClaimTypes.Email) != null,
                         UserName = context.Principal.FindFirstValue(ClaimTypes.Name),
-                        TokenLeft = 0
+                        TokenLeft = builder.Configuration.GetValue("FreeTokenForNewUser", 0)
                     };
                     db.Users.Add(user);
                 }
@@ -101,6 +101,7 @@ builder.Services.AddAuthentication(options =>
                 identity?.AddClaim(new Claim(ClaimTypes.Role, "User"));
 
                 db.SaveChanges();
+                return Task.CompletedTask;
             }
         };
     });

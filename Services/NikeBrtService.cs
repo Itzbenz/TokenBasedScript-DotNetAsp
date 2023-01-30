@@ -83,6 +83,15 @@ public class NikeBrtService : BackgroundService
     private static readonly HttpClient Client = new HttpClient();
     private DateTime _lastClean = DateTime.Now;
 
+    public static bool Running = false;
+    private static bool _online = false;
+
+    public static bool Online
+    {
+        get => Running && _online;
+        set => _online = value;
+    }
+
     public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IConfiguration config)
     {
         Services = services;
@@ -97,30 +106,44 @@ public class NikeBrtService : BackgroundService
             throw new Exception("Nike Brt Script Queue URL is not set in configuration");
         _logger.LogInformation("Nike Brt Script Queue is running");
         _logger.LogInformation("Nike Brt Script Queue URL: {Url}", url);
-        using (var scope = Services.CreateScope())
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetService<MvcContext>();
+        if (context == null)
+            throw new Exception("Could not get MvcContext from DI");
+        Online = true;
+        while (!stoppingToken.IsCancellationRequested)
         {
-            var context = scope.ServiceProvider.GetService<MvcContext>();
-            while (!stoppingToken.IsCancellationRequested)
+            Running = true;
+            await Task.Delay(Online ? 1000 : 5000, stoppingToken);
+            _logger.LogDebug("Querying Nike Brt Script Queue");
+            try
             {
-                await Task.Delay(1000, stoppingToken);
-                _logger.LogDebug("Querying Nike Brt Script Queue");
-                try
+                await Work(context, url, stoppingToken);
+                if (!Online)
                 {
-                    await Work(context, url, stoppingToken);
+                    _logger.LogInformation("Nike Brt Script is online");
                 }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Error while querying Nike Brt Script Queue");
-                }
+                Online = true;
+            }
+            catch (HttpRequestException e)
+            {
+                if(Online) _logger.LogError("Error interacting with NikeBrt Backend: {Message}", e.Message);
+                Online = false;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error executing NikeBrt Service");
+                Online = false;
             }
         }
+        Online = false;
+        Running = false;
     }
 
     private async Task Work(MvcContext context, string url, CancellationToken stoppingToken)
     {
         var ids = new List<string>();
-        try
-        {
+       
             var response = await Client.GetAsync(url + "/orders", stoppingToken);
             if (response.IsSuccessStatusCode)
             {
@@ -158,7 +181,7 @@ public class NikeBrtService : BackgroundService
                             //refund user
                             if (scriptExecution.User != null)
                             {
-                                scriptExecution.User.TokenLeft += 1;
+                                //scriptExecution.User.TokenLeft += 1;
                                 _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
                                     scriptExecution.User.Id, id);
                             }
@@ -193,13 +216,10 @@ public class NikeBrtService : BackgroundService
                     _logger.LogError("Response: {Response}", content);
                 }
             }
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error while querying Nike Brt Script Queue");
-        }
+        
+     
 
-        if (DateTime.Now - _lastClean > TimeSpan.FromMinutes(5))
+        if (DateTime.Now - _lastClean > TimeSpan.FromMinutes(1))
         {
             _lastClean = DateTime.Now;
             _logger.LogInformation("Cleaning stalled executions");
@@ -208,9 +228,13 @@ public class NikeBrtService : BackgroundService
                 .Where(x => !x.IsFinished && x.ScriptName == "NikeBRT")
                 .Include(x => x.User)
                 .ToList();
-            foreach (var scriptExecution in stalledExecutions.Where(
-                         scriptExecution => !ids.Contains(scriptExecution.Id)))
+            foreach (var scriptExecution in stalledExecutions)
             {
+                if (scriptExecution.IsFinished)
+                {
+                    _logger.LogWarning("NikeBrt {Id} is already finished", scriptExecution.Id);
+                }
+                if(ids.Contains(scriptExecution.Id)) continue;
                 scriptExecution.IsFinished = true;
                 scriptExecution.IsSuccess = false;
                 if (scriptExecution.User != null)
@@ -226,6 +250,7 @@ public class NikeBrtService : BackgroundService
 
                 context.ScriptExecutions.Update(scriptExecution);
             }
+            await context.SaveChangesAsync(stoppingToken);
         }
     }
 }
