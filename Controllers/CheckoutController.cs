@@ -57,7 +57,7 @@ public class CheckoutController : Controller
             CancelUrl = domain,
         };
         var service = new SessionService();
-        Session session = service.Create(options);
+        var session = await service.CreateAsync(options);
 
         Response.Headers.Add("Location", session.Url);
         return new StatusCodeResult(303);

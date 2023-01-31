@@ -13,6 +13,8 @@ public class ScriptExecution : ITrackableEntity
     public IList<Status> Statuses { get; set; } = new List<Status>();
     public bool IsSuccess { get; set; }
     public bool IsFinished { get; set; }
+    
+    public int TokenUsed { get; set; }
 
     public DateTime DateCreated { get; set; }
     public DateTime DateModified { get; set; }

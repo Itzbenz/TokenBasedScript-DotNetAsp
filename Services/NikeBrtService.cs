@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Stripe;
@@ -116,6 +117,7 @@ public class NikeBrtService : BackgroundService
             Running = true;
             await Task.Delay(Online ? 1000 : 5000, stoppingToken);
             _logger.LogDebug("Querying Nike Brt Script Queue");
+
             try
             {
                 await Work(context, url, stoppingToken);
@@ -123,11 +125,12 @@ public class NikeBrtService : BackgroundService
                 {
                     _logger.LogInformation("Nike Brt Script is online");
                 }
+
                 Online = true;
             }
             catch (HttpRequestException e)
             {
-                if(Online) _logger.LogError("Error interacting with NikeBrt Backend: {Message}", e.Message);
+                if (Online) _logger.LogError("Error interacting with NikeBrt Backend: {Message}", e.Message);
                 Online = false;
             }
             catch (Exception e)
@@ -135,122 +138,146 @@ public class NikeBrtService : BackgroundService
                 _logger.LogError(e, "Error executing NikeBrt Service");
                 Online = false;
             }
+
+            try
+            {
+                await WorkRefund(context, stoppingToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while refunding failed NikeBrt orders");
+            }
         }
+
         Online = false;
         Running = false;
     }
 
+    //TODO cache this
     private async Task Work(MvcContext context, string url, CancellationToken stoppingToken)
     {
         var ids = new List<string>();
-       
-            var response = await Client.GetAsync(url + "/orders", stoppingToken);
-            if (response.IsSuccessStatusCode)
+
+        var response = await Client.GetAsync(url + "/orders", stoppingToken);
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync(stoppingToken);
+            var orders = JsonConvert.DeserializeObject<Orders>(content)?.data.Values;
+            if (orders != null)
             {
-                var content = await response.Content.ReadAsStringAsync(stoppingToken);
-                var orders = JsonConvert.DeserializeObject<Orders>(content)?.data.Values;
-                if (orders != null)
+                _logger.LogDebug("Found {Count} orders", orders.Count);
+
+                foreach (var order in orders)
                 {
-                    _logger.LogDebug("Found {Count} orders", orders.Count);
-
-                    foreach (var order in orders)
+                    var id = order.id;
+                    ids.Add(id);
+                    var scriptExecution = context.ScriptExecutions.Include(x => x.Statuses).Include(x => x.User)
+                        .FirstOrDefault(x => x.Id == id);
+                    if (scriptExecution == null)
                     {
-                        var id = order.id;
-                        ids.Add(id);
-                        var scriptExecution = context.ScriptExecutions.Include(x => x.Statuses).Include(x => x.User)
-                            .FirstOrDefault(x => x.Id == id);
-                        if (scriptExecution == null)
+                        _logger.LogWarning("NikeBrt {Id} not found in database, external intervention?", id);
+                        continue;
+                    }
+
+                    //check if finished event
+                    if (order.status == "success" && !scriptExecution.IsFinished)
+                    {
+                        scriptExecution.IsSuccess = true;
+                        scriptExecution.IsFinished = true;
+                        context.ScriptExecutions.Update(scriptExecution);
+                    }
+                    else if (order.failed && !scriptExecution.IsFinished)
+                    {
+                        scriptExecution.IsSuccess = false;
+                        scriptExecution.IsFinished = true;
+                        //resolve user
+
+                        //refund user
+                        if (scriptExecution.User != null)
                         {
-                            _logger.LogWarning("NikeBrt {Id} not found in database, external intervention?", id);
-                            continue;
+                            //scriptExecution.User.TokenLeft += 1;
+                            _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
+                                scriptExecution.User.Id, id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("NikeBrt {Id} has no user associated", id);
                         }
 
-                        //check if finished event
-                        if (order.status == "success" && !scriptExecution.IsFinished)
-                        {
-                            scriptExecution.IsSuccess = true;
-                            scriptExecution.IsFinished = true;
-                            context.ScriptExecutions.Update(scriptExecution);
-                        }
-                        else if (order.failed && !scriptExecution.IsFinished)
-                        {
-                            scriptExecution.IsSuccess = false;
-                            scriptExecution.IsFinished = true;
-                            //resolve user
-
-                            //refund user
-                            if (scriptExecution.User != null)
-                            {
-                                //scriptExecution.User.TokenLeft += 1;
-                                _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
-                                    scriptExecution.User.Id, id);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("NikeBrt {Id} has no user associated", id);
-                            }
-
-                            context.ScriptExecutions.Update(scriptExecution);
-                        }
-
-
-                        //update status
-                        var lastStatus = scriptExecution.Statuses.LastOrDefault();
-                        if (order.status != null && lastStatus?.Message != order.status)
-                        {
-                            scriptExecution.Statuses.Add(new ScriptExecution.Status
-                            {
-                                Message = order.status,
-                            });
-                            _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
-                            context.ScriptExecutions.Update(scriptExecution);
-                        }
+                        context.ScriptExecutions.Update(scriptExecution);
                     }
 
 
-                    await context.SaveChangesAsync(stoppingToken);
+                    //update status
+                    var lastStatus = scriptExecution.Statuses.LastOrDefault();
+                    if (order.status != null && lastStatus?.Message != order.status)
+                    {
+                        scriptExecution.Statuses.Add(new ScriptExecution.Status
+                        {
+                            Message = order.status,
+                        });
+                        _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
+                        context.ScriptExecutions.Update(scriptExecution);
+                    }
                 }
-                else
-                {
-                    _logger.LogError("Failed to parse orders");
-                    _logger.LogError("Response: {Response}", content);
-                }
+
+
+                await context.SaveChangesAsync(stoppingToken);
             }
-        
-     
+            else
+            {
+                _logger.LogError("Failed to parse orders");
+                _logger.LogError("Response: {Response}", content);
+            }
+        }
+
 
         if (DateTime.Now - _lastClean > TimeSpan.FromMinutes(1))
         {
             _lastClean = DateTime.Now;
             _logger.LogInformation("Cleaning stalled executions");
+            await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+
             //clean stalled executions
             var stalledExecutions = context.ScriptExecutions
                 .Where(x => !x.IsFinished && x.ScriptName == "NikeBRT")
-                .Include(x => x.User)
                 .ToList();
+
             foreach (var scriptExecution in stalledExecutions)
             {
                 if (scriptExecution.IsFinished)
                 {
                     _logger.LogWarning("NikeBrt {Id} is already finished", scriptExecution.Id);
                 }
-                if(ids.Contains(scriptExecution.Id)) continue;
+
+                if (ids.Contains(scriptExecution.Id)) continue;
                 scriptExecution.IsFinished = true;
                 scriptExecution.IsSuccess = false;
-                if (scriptExecution.User != null)
-                {
-                    scriptExecution.User.TokenLeft += 1;
-                    _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId} because it was stalled",
-                        scriptExecution.User.Id, scriptExecution.Id);
-                }
-                else
-                {
-                    _logger.LogWarning("NikeBrt {Id} has no user associated", scriptExecution.Id);
-                }
-
-                context.ScriptExecutions.Update(scriptExecution);
+                await context.SaveChangesAsync(stoppingToken);
             }
+
+
+            await transaction.CommitAsync(stoppingToken);
+        }
+    }
+
+    private async Task WorkRefund(MvcContext context, CancellationToken stoppingToken)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+        _logger.LogInformation("Refunding Failed Execution of NikeBrt");
+        var scriptToBeRefunded = context.ScriptExecutions
+            .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.User != null)
+            .Include(x => x.User)
+            .ToList();
+
+        foreach (var script in scriptToBeRefunded)
+        {
+            if (script.User == null) continue;
+            script.User.TokenLeft += script.TokenUsed;
+            script.TokenUsed = 0;
             await context.SaveChangesAsync(stoppingToken);
         }
+
+        await transaction.CommitAsync(stoppingToken);
     }
 }

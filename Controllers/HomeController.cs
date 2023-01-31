@@ -140,6 +140,7 @@ public class HomeController : Controller
                 Id = scriptExecutionId + "",
                 ScriptName = "NikeBRT",
                 ScriptContent = scriptContent,
+                TokenUsed = 1,
                 User = user,
             });
             _context.Update(user);
