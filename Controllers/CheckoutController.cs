@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -12,11 +11,9 @@ namespace TokenBasedScript.Controllers;
 [Authorize(Policy = "LoggedIn")]
 public class CheckoutController : Controller
 {
+    private readonly IConfiguration _config;
     private readonly MvcContext _context;
     private readonly IGiveUser _giveUser;
-    private readonly IConfiguration _config;
-
-    private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
 
     public CheckoutController(MvcContext context, IGiveUser giveUser, IConfiguration config)
     {
@@ -25,14 +22,16 @@ public class CheckoutController : Controller
         _config = config;
     }
 
+    private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
+
+    [Authorize(Policy = "LoggedIn")]
     public async Task<IActionResult> IndexAsync()
     {
-        User? user = await _giveUser.GetUser();
-        if (user == null) return RedirectToAction("Index", "Home");
         return View("Index");
     }
 
     [HttpPost("/{controller}")]
+    [Authorize(Policy = "LoggedIn")]
     public async Task<IActionResult> Checkout([FromForm] int amount)
     {
         User? user = await _giveUser.GetUser();

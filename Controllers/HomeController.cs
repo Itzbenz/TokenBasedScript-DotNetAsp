@@ -1,10 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -16,13 +14,11 @@ namespace TokenBasedScript.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-    private readonly MvcContext _context;
-    private readonly IConfiguration _config;
-    private readonly IGiveUser _giveUser;
-
-
     private static readonly HttpClient Client = new HttpClient();
+    private readonly IConfiguration _config;
+    private readonly MvcContext _context;
+    private readonly IGiveUser _giveUser;
+    private readonly ILogger<HomeController> _logger;
 
     public HomeController(MvcContext context, ILogger<HomeController> logger, IGiveUser giveUser, IConfiguration config)
     {
@@ -89,7 +85,7 @@ public class HomeController : Controller
             ViewData["Error"] = "NikeBRT Executor is currently offline";
             return View(user);
         }
-        
+
         //check for form data
         if (orderEmail == null || orderNumber == null || name == null || telephone == null || email == null ||
             mobilePhoneNumber == null || address == null || postCode == null || town == null || district == null)
@@ -168,7 +164,9 @@ public class HomeController : Controller
             throw new Exception("User is null");
         }
 
-        var scriptExecutions = _context.ScriptExecutions.Where(s => s.User == user).Include(item => item.Statuses)
+        var scriptExecutions = _context.ScriptExecutions
+            .Where(s => s.User == user)
+            .Include(item => item.Statuses)
             .ToList();
         return View(scriptExecutions);
     }
@@ -184,7 +182,9 @@ public class HomeController : Controller
             throw new Exception("User is null");
         }
 
-        var scriptExecution = _context.ScriptExecutions.Where(s => s.Id == id).Include(item => item.Statuses)
+        var scriptExecution = _context.ScriptExecutions
+            .Where(s => s.Id == id && s.User == user)
+            .Include(item => item.Statuses)
             .FirstOrDefault();
         if (scriptExecution is null || scriptExecution.User != user)
         {
