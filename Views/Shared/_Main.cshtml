@@ -61,33 +61,19 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="#services" aria-label="Brings you to the frontpage">
-                            Services
+                        <a class="nav-link" href="ScriptStatus" aria-label="Brings you to the frontpage">
+                            Script Status
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="NikeBRTScript">
+                            NikeBrt Script
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#aboutus">
-                            About us
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#numbers">
-                            Numbers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#gallery">
-                            Gallery
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#workwithus">
-                            Work with us
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#testimonials">
-                            Testimonials
+                        <a class="nav-link" href="Checkout">
+                            Buy More Token
                         </a>
                     </li>
 
@@ -118,10 +104,35 @@
 
 
 @Html.Partial("_Footer")
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/aos.js"></script>
+<script>
+ AOS.init({
+   duration: 800, // values from 0 to 3000, with step 50ms
+ });
+ </script>
 
+<script>
+  let scrollpos = window.scrollY
+  const header = document.querySelector(".navbar")
+  const header_height = header.offsetHeight
+
+  const add_class_on_scroll = () => header.classList.add("scrolled", "shadow-sm")
+  const remove_class_on_scroll = () => header.classList.remove("scrolled", "shadow-sm")
+
+  window.addEventListener('scroll', function() {
+    scrollpos = window.scrollY;
+
+    if (scrollpos >= header_height) { add_class_on_scroll() }
+    else { remove_class_on_scroll() }
+
+    console.log(scrollpos)
+  })
+</script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", false)
+
 </body>
 </html>
