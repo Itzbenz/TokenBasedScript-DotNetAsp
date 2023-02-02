@@ -271,7 +271,7 @@ public class NikeBrtService : BackgroundService
         await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, stoppingToken);
         _logger.LogInformation("Refunding Failed Execution of NikeBrt");
         var scriptToBeRefunded = context.ScriptExecutions
-            .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.User != null)
+            .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.IsFinished && x.User != null)
             .Include(x => x.User)
             .ToList();
 
