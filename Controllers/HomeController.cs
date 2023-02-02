@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Data;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -130,6 +131,10 @@ public class HomeController : Controller
         var response = await Client.PostAsync(nikeBrtBackendUrl + "/orders", content);
         if (response.IsSuccessStatusCode)
         {
+            var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead);
+        
+            user = _context.Users.FirstOrDefault(u => u.Id == user.Id);
+            if (user == null) throw new Exception("User is null, before its not: " + user);
             user.TokenLeft--;
             _context.ScriptExecutions.Add(new ScriptExecution
             {
@@ -141,6 +146,8 @@ public class HomeController : Controller
             });
             _context.Update(user);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             ViewData["Info"] = "Queued";
             return Redirect("/ScriptStatus/" + scriptExecutionId);
         }

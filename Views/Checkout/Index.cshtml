@@ -4,6 +4,7 @@
     ViewData["Title"] = "Checkout";
 }
 
+
 <main>
     <div class="h-100 container-fluid">
         <div class="h-100 row d-flex align-items-stretch">
@@ -18,6 +19,18 @@
                 </header>
                 <main class="mb-auto col-12">
                     <h1>Buy Token</h1>
+                    @if (ViewData["Error"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @ViewData["Error"]
+                        </div>
+                    }
+                    @if (ViewData["Info"] != null)
+                    {
+                        <div class="alert alert-info" role="alert">
+                            @ViewData["Info"]
+                        </div>
+                    }
                     <form class="row" method="post" action="/checkout">
                         <div class="col-12">
                             <div class="mb-3">
@@ -25,7 +38,13 @@
                                 <input type="number" class="form-control form-control-lg" id="amount" name="amount" placeholder="1" defaultValue="1" value="1" aria-describedby="amountHelp">
                                 <div id="amountHelp" class="form-text">Amount of token to buy</div>
                             </div>
-
+                            <div class="mb-3">
+                                <label for="amount">Promotion Code</label>
+                                <input type="text" class="form-control form-control-lg" id="promotionCode" name="promotionCode" placeholder="Promotion Code" defaultValue="" value="" aria-describedby="promotionCodeHelp">
+                                <div id="promotionCodeHelp" class="form-text">Promotion code to apply</div>
+                                
+                            </div>
+                            
                             <button type="submit" class="btn btn-primary btn-xl mb-4">Buy</button>
                             <p class="small text-muted border-top py-2">Psssst! By buying token you agree to our well hidden terms of service. They are here...somewhere...for legal reasons...but you would not find ´em!</p>
                         </div>

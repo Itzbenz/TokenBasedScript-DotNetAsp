@@ -1,3 +1,4 @@
+using System.Data;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -82,7 +83,7 @@ public class NikeBrtService : BackgroundService
     private readonly IConfiguration _config;
     private IServiceProvider Services { get; }
     private static readonly HttpClient Client = new HttpClient();
-    private DateTime _lastClean = DateTime.Now;
+    private DateTime _lastClean, _lastRefund = DateTime.Now;
 
     public static bool Running = false;
     private static bool _online = false;
@@ -166,7 +167,7 @@ public class NikeBrtService : BackgroundService
             if (orders != null)
             {
                 _logger.LogDebug("Found {Count} orders", orders.Count);
-
+                var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, stoppingToken);
                 foreach (var order in orders)
                 {
                     var id = order.id;
@@ -223,6 +224,7 @@ public class NikeBrtService : BackgroundService
 
 
                 await context.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
             }
             else
             {
@@ -236,7 +238,7 @@ public class NikeBrtService : BackgroundService
         {
             _lastClean = DateTime.Now;
             _logger.LogInformation("Cleaning stalled executions");
-            await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+            await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
 
             //clean stalled executions
             var stalledExecutions = context.ScriptExecutions
@@ -261,9 +263,12 @@ public class NikeBrtService : BackgroundService
         }
     }
 
+    
     private async Task WorkRefund(MvcContext context, CancellationToken stoppingToken)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+        if(DateTime.Now - _lastRefund < TimeSpan.FromMinutes(1)) return;
+        _lastRefund = DateTime.Now;
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, stoppingToken);
         _logger.LogInformation("Refunding Failed Execution of NikeBrt");
         var scriptToBeRefunded = context.ScriptExecutions
             .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.User != null)

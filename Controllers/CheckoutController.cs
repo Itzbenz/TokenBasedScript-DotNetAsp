@@ -32,12 +32,24 @@ public class CheckoutController : Controller
 
     [HttpPost("/{controller}")]
     [Authorize(Policy = "LoggedIn")]
-    public async Task<IActionResult> Checkout([FromForm] int amount)
+    public async Task<IActionResult> Checkout([FromForm] int amount, string? promotionCode)
     {
         User? user = await _giveUser.GetUser();
         if (user == null) return RedirectToAction("Index", "Home");
         var clientReferenceId = user.Snowflake;
         var domain = Request.Scheme + "://" + Request.Host.Value + "/";
+        List<SessionDiscountOptions>? discounts = null;
+        if (promotionCode != null)
+        {
+            
+            discounts = new List<SessionDiscountOptions>
+            {
+                new SessionDiscountOptions
+                {
+                    PromotionCode = promotionCode,
+                }
+            };
+        }
         var options = new SessionCreateOptions
         {
             ClientReferenceId = clientReferenceId,
@@ -51,15 +63,24 @@ public class CheckoutController : Controller
                     Quantity = amount,
                 },
             },
+            Discounts = discounts,
             Mode = "payment",
             SuccessUrl = domain,
             CancelUrl = domain,
         };
         var service = new SessionService();
-        var session = await service.CreateAsync(options);
+        try
+        {
+            var session = await service.CreateAsync(options);
 
-        Response.Headers.Add("Location", session.Url);
-        return new StatusCodeResult(303);
+            Response.Headers.Add("Location", session.Url);
+            return new StatusCodeResult(303);
+        }
+        catch (StripeException e)
+        {
+            ViewData["Error"] = e.Message;
+            return View("Index");
+        }
     }
 
     //stripe listen --forward-to http://localhost:5192/api/stripe/webhook
@@ -92,7 +113,7 @@ public class CheckoutController : Controller
                     return BadRequest(
                         "Client reference id is null. This is probably because the user is not logged in.");
                 // Fulfill the purchase...
-                this.FulfillOrder(lineItems, clientReferenceId);
+                await this.FulfillOrder(lineItems, clientReferenceId);
             }
 
             return Ok();
@@ -103,17 +124,20 @@ public class CheckoutController : Controller
         }
     }
 
-    private void FulfillOrder(StripeList<LineItem> lineItems, string clientReferenceId)
+    private async Task FulfillOrder(StripeList<LineItem> lineItems, string clientReferenceId)
     {
         //find by snowflake
-        User? user = _context.Users.FirstOrDefault(u => u.Snowflake == clientReferenceId);
+        var transaction = await _context.Database.BeginTransactionAsync();
+        var user = _context.Users.FirstOrDefault(u => u.Snowflake == clientReferenceId);
         if (user?.Snowflake == null)
             throw new Exception("User not found: " + clientReferenceId);
         foreach (var item in lineItems)
         {
             if (item.Description != "Token") continue;
             user.TokenLeft += item.Quantity ?? 0;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
+        
+        await transaction.CommitAsync();
     }
 }
