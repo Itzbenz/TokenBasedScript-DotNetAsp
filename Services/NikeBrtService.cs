@@ -1,8 +1,6 @@
 using System.Data;
-using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Stripe;
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 
@@ -10,12 +8,14 @@ namespace TokenBasedScript.Services;
 
 internal class Orders
 {
-    public string? message;
     public Dictionary<long, NikeOrder> data;
+    public string? message;
 }
 
 public class NikeOrder
 {
+    public bool failed;
+
     /**
     id: number; //External ID
 
@@ -32,18 +32,21 @@ public class NikeOrder
     */
     public string id;
 
-    public string? orderNumber;
-    public string? orderEmail;
-    public string? myBRTNumber;
-    public string? shipmentReference;
     public string? myBRTCode;
-    public string? status;
-    public bool failed;
+    public string? myBRTNumber;
+    public string? orderEmail;
+
+    public string? orderNumber;
     public string? postCode;
+    public string? shipmentReference;
+    public string? status;
     public VasBrtForm? vasBrtForm;
 
     public class VasBrtForm
     {
+        public string? email;
+        public string? mobilePhoneNumber;
+
         /**
      *  name: string;
     telephone: string;
@@ -60,18 +63,17 @@ public class NikeOrder
      */
         public string? name;
 
-        public string? telephone;
-        public string? email;
-        public string? mobilePhoneNumber;
         public OptionsData? optionsData;
+
+        public string? telephone;
 
         public class OptionsData
         {
-            public string? name;
             public string? address;
+            public string? district;
+            public string? name;
             public string? postCode;
             public string? town;
-            public string? district;
         }
     }
 }
@@ -79,26 +81,27 @@ public class NikeOrder
 //should make this a webhook listener
 public class NikeBrtService : BackgroundService
 {
-    private readonly ILogger _logger;
-    private readonly IConfiguration _config;
-    private IServiceProvider Services { get; }
     private static readonly HttpClient Client = new HttpClient();
-    private DateTime _lastClean, _lastRefund = DateTime.Now;
 
     public static bool Running = false;
     private static bool _online = false;
-
-    public static bool Online
-    {
-        get => Running && _online;
-        set => _online = value;
-    }
+    private readonly IConfiguration _config;
+    private readonly ILogger _logger;
+    private DateTime _lastClean, _lastRefund = DateTime.Now;
 
     public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IConfiguration config)
     {
         Services = services;
         _logger = logger;
         _config = config;
+    }
+
+    private IServiceProvider Services { get; }
+
+    public static bool Online
+    {
+        get => Running && _online;
+        set => _online = value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -167,7 +170,8 @@ public class NikeBrtService : BackgroundService
             if (orders != null)
             {
                 _logger.LogDebug("Found {Count} orders", orders.Count);
-                var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, stoppingToken);
+                var transaction =
+                    await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, stoppingToken);
                 foreach (var order in orders)
                 {
                     var id = order.id;
@@ -196,7 +200,6 @@ public class NikeBrtService : BackgroundService
                         //refund user
                         if (scriptExecution.User != null)
                         {
-                            //scriptExecution.User.TokenLeft += 1;
                             _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
                                 scriptExecution.User.Id, id);
                         }
@@ -238,7 +241,8 @@ public class NikeBrtService : BackgroundService
         {
             _lastClean = DateTime.Now;
             _logger.LogInformation("Cleaning stalled executions");
-            await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
+            await using var transaction =
+                await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
 
             //clean stalled executions
             var stalledExecutions = context.ScriptExecutions
@@ -263,12 +267,13 @@ public class NikeBrtService : BackgroundService
         }
     }
 
-    
+
     private async Task WorkRefund(MvcContext context, CancellationToken stoppingToken)
     {
-        if(DateTime.Now - _lastRefund < TimeSpan.FromMinutes(1)) return;
+        if (DateTime.Now - _lastRefund < TimeSpan.FromMinutes(1)) return;
         _lastRefund = DateTime.Now;
-        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, stoppingToken);
+        await using var transaction =
+            await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
         _logger.LogInformation("Refunding Failed Execution of NikeBrt");
         var scriptToBeRefunded = context.ScriptExecutions
             .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.IsFinished && x.User != null)
