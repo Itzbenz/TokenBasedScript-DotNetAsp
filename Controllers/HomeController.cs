@@ -174,7 +174,7 @@ public class HomeController : Controller
         var scriptExecutions = _context.ScriptExecutions
             .Where(s => s.User == user)
             .Include(item => item.Statuses)
-            .Reverse()
+            .OrderByDescending(item => item.DateModified)
             .ToList();
         return View(scriptExecutions);
     }
