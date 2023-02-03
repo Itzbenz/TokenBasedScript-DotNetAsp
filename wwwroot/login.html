@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html class="form-screen" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Login - Admin One Tailwind CSS Admin Dashboard</title>
+
+    <!-- Tailwind is included -->
+    <link href="css/main.css?v=1628755089081" rel="stylesheet">
+
+    <link href="apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+    <link href="favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+    <link href="favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+    <link color="#00b4b6" href="safari-pinned-tab.svg" rel="mask-icon"/>
+
+    <meta content="Admin One - free Tailwind dashboard" name="description">
+
+    <meta content="https://justboil.github.io/admin-one-tailwind/" property="og:url">
+    <meta content="JustBoil.me" property="og:site_name">
+    <meta content="Admin One HTML" property="og:title">
+    <meta content="Admin One - free Tailwind dashboard" property="og:description">
+    <meta content="https://justboil.me/images/one-tailwind/repository-preview-hi-res.png" property="og:image">
+    <meta content="image/png" property="og:image:type">
+    <meta content="1920" property="og:image:width">
+    <meta content="960" property="og:image:height">
+
+    <meta content="summary_large_image" property="twitter:card">
+    <meta content="Admin One HTML" property="twitter:title">
+    <meta content="Admin One - free Tailwind dashboard" property="twitter:description">
+    <meta content="https://justboil.me/images/one-tailwind/repository-preview-hi-res.png" property="twitter:image:src">
+    <meta content="1920" property="twitter:image:width">
+    <meta content="960" property="twitter:image:height">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-130795909-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+        gtag('config', 'UA-130795909-1');
+    </script>
+
+</head>
+<body>
+
+<div id="app">
+
+    <section class="section main-section">
+        <div class="card">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"><i class="mdi mdi-lock"></i></span>
+                    Login
+                </p>
+            </header>
+            <div class="card-content">
+                <form method="get">
+
+                    <div class="field spaced">
+                        <label class="label">Login</label>
+                        <div class="control icons-left">
+                            <input autocomplete="username" class="input" name="login" placeholder="user@example.com"
+                                   type="text">
+                            <span class="icon is-small left"><i class="mdi mdi-account"></i></span>
+                        </div>
+                        <p class="help">
+                            Please enter your login
+                        </p>
+                    </div>
+
+                    <div class="field spaced">
+                        <label class="label">Password</label>
+                        <p class="control icons-left">
+                            <input autocomplete="current-password" class="input" name="password" placeholder="Password"
+                                   type="password">
+                            <span class="icon is-small left"><i class="mdi mdi-asterisk"></i></span>
+                        </p>
+                        <p class="help">
+                            Please enter your password
+                        </p>
+                    </div>
+
+                    <div class="field spaced">
+                        <div class="control">
+                            <label class="checkbox"><input checked name="remember" type="checkbox" value="1">
+                                <span class="check"></span>
+                                <span class="control-label">Remember</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="field grouped">
+                        <div class="control">
+                            <button class="button blue" type="submit">
+                                Login
+                            </button>
+                        </div>
+                        <div class="control">
+                            <a class="button" href="index.html">
+                                Back
+                            </a>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </section>
+
+
+</div>
+
+<!-- Scripts below are for demo only -->
+<script src="js/main.min.js?v=1628755089081" type="text/javascript"></script>
+
+
+<script>
+    !function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+            n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = '2.0';
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s)
+    }(window, document, 'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '658339141622648');
+    fbq('track', 'PageView');
+</script>
+<noscript><img height="1" src="https://www.facebook.com/tr?id=658339141622648&ev=PageView&noscript=1" style="display:none"
+               width="1"/></noscript>
+
+<!-- Icons below are for demo only. Feel free to use any icon pack. Docs: https://bulma.io/documentation/elements/icon/ -->
+<link href="https://cdn.materialdesignicons.com/4.9.95/css/materialdesignicons.min.css" rel="stylesheet">
+
+</body>
+</html>

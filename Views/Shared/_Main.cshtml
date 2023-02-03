@@ -1,4 +1,17 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Http.Extensions
+@{
+    if (User.HasClaim(c => c.Type == "urn:discord:avatar:hash"))
+    {
+        ViewData["Avatar"] = $"https://cdn.discordapp.com/avatars/{User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value}/{User.Claims.First(c => c.Type == "urn:discord:avatar:hash").Value}.png?";
+    }
+    else
+    {
+        ViewData["Avatar"] = "https://justboil.me/tailwind-admin-template/img/avatars/1.jpg";
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -8,93 +21,116 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="96x96" href="favicon.ico">
-    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true"/>
-    <style>
-    
-    /* inter-300 - latin */
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 300;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 500;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-500.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 700;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    
-    </style>
+
+    <meta property="og:url" content="@{ Context.Request.GetEncodedUrl(); }">
+    <meta property="og:site_name" content="@Context.Request.Host.Value">
+    <meta property="og:title" content="@ViewData["Title"] - TokenBasedScript">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="@ViewData["Title"] - TokenBasedScript">
+    <link rel="stylesheet" href="css/main.css?v=1628755089081">
+
 </head>
 <body>
 
 <header>
-    <nav id="navScroll" class="navbar navbar-expand-lg navbar-light fixed-top" tabindex="0">
-        <div class="container">
-            <a class="navbar-brand pe-4 fs-4" href="/">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-layers-half" viewbox="0 0 16 16">
-                    <path d="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882l-7.5-4zM8 9.433 1.562 6 8 2.567 14.438 6 8 9.433z"/>
-                </svg>
-                <span class="ms-1 fw-bolder">Stride</span>
+    @if (User?.Identity?.IsAuthenticated ?? false)
+    {
+        <h1>Welcome, @User.Identity.Name</h1>
+
+        <p>
+            @foreach (var claim in Context.User.Claims)
+            {
+                <div><code>@claim.Type</code>: <strong>@claim.Value</strong></div>
+            }
+        </p>
+
+        <a class="btn btn-lg btn-danger" href="/signout?returnUrl=%2F">Sign out</a>
+    }
+
+    else
+    {
+        <h1>Welcome, anonymous</h1>
+        <a class="btn btn-lg btn-success" href="/signin?returnUrl=%2F">Sign in</a>
+    }
+    <nav id="navbar-main" class="navbar is-fixed-top">
+        <div class="navbar-brand">
+            <a class="navbar-item mobile-aside-button">
+                <span class="icon">
+                    <i class="mdi mdi-forwardburger mdi-24px"></i>
+                </span>
             </a>
+            <div class="navbar-item">
+                <div class="control">
+                    <input placeholder="Search everywhere..." class="input">
+                </div>
+            </div>
+        </div>
+        <div class="navbar-brand is-right">
+            <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
+                <span class="icon">
+                    <i class="mdi mdi-dots-vertical mdi-24px"></i>
+                </span>
+            </a>
+        </div>
+        <div class="navbar-menu" id="navbar-menu">
+            <div class="navbar-end">
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="ScriptStatus" aria-label="Brings you to the frontpage">
-                            Script Status
+                <div class="navbar-item dropdown has-divider has-user-avatar">
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a class="navbar-link">
+                            <div class="user-avatar">
+                                <img src="@ViewData["Avatar"]" alt="@User.Identity.Name" class="rounded-full">
+                            </div>
+                            <div class="is-user-name">
+                                <span>@User.Identity.Name</span>
+                            </div>
+                            <span class="icon">
+                                <i class="mdi mdi-chevron-down"></i>
+                            </span>
                         </a>
-                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="NikeBRTScript">
-                            NikeBrt Script
+                        <div class="navbar-dropdown">
+                            <a href="profile.html" class="navbar-item">
+                                <span class="icon">
+                                    <i class="mdi mdi-account"></i>
+                                </span>
+                                <span>My Profile</span>
+                            </a>
+                            <a class="navbar-item">
+                                <span class="icon">
+                                    <i class="mdi mdi-settings"></i>
+                                </span>
+                                <span>Settings</span>
+                            </a>
+                            <a class="navbar-item">
+                                <span class="icon">
+                                    <i class="mdi mdi-email"></i>
+                                </span>
+                                <span>Messages</span>
+                            </a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item">
+                                <span class="icon">
+                                    <i class="mdi mdi-logout"></i>
+                                </span>
+                                <span>Log Out</span>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <a title="Log in" class="navbar-item desktop-icon-only" href="/sigin">
+                            <span class="icon">
+                                <i class="mdi mdi-logout"></i>
+                            </span>
+                            <span>Log out</span>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="Checkout">
-                            Buy More Token
-                        </a>
-                    </li>
-
-                </ul>
-                @if (User?.Identity?.IsAuthenticated ?? false)
-                {
-                    <a class="link-dark pb-1 link-fancy me-2" href="/signout?returnUrl=%2F">Sign out</a>
-                }
-                else
-                {
-                    <a href="/signin?redirect=%2F" data-splitbee-event="Click Download" aria-label="Login with Discord" class="link-dark pb-1 link-fancy me-2">
-                        Login with Discord
-                        <img src="img/discord-mark-black.svg" alt="discord login" width="32" height="32"/>
-                    </a>
-                }
-
-
+                    }
+                </div>
             </div>
         </div>
     </nav>
-
 
 </header>
 <partial name="_CookieConsentPartial"/>
@@ -104,34 +140,33 @@
 
 
 @Html.Partial("_Footer")
-<script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/aos.js"></script>
-<script>
- AOS.init({
-   duration: 800, // values from 0 to 3000, with step 50ms
- });
- </script>
+
+<!-- Scripts below are for demo only -->
+<script type="text/javascript" src="js/main.min.js?v=1628755089081"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script type="text/javascript" src="js/chart.sample.min.js"></script>
+
 
 <script>
-  let scrollpos = window.scrollY
-  const header = document.querySelector(".navbar")
-  const header_height = header.offsetHeight
-
-  const add_class_on_scroll = () => header.classList.add("scrolled", "shadow-sm")
-  const remove_class_on_scroll = () => header.classList.remove("scrolled", "shadow-sm")
-
-  window.addEventListener('scroll', function() {
-    scrollpos = window.scrollY;
-
-    if (scrollpos >= header_height) { add_class_on_scroll() }
-    else { remove_class_on_scroll() }
-
-    console.log(scrollpos)
-  })
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '658339141622648');
+  fbq('track', 'PageView');
 </script>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
+<noscript>
+    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=658339141622648&ev=PageView&noscript=1"/>
+</noscript>
+
+<!-- Icons below are for demo only. Feel free to use any icon pack. Docs: https://bulma.io/documentation/elements/icon/ -->
+<link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.9.95/css/materialdesignicons.min.css">
+
 @await RenderSectionAsync("Scripts", false)
 
 </body>
