@@ -132,7 +132,7 @@ public class HomeController : Controller
         if (response.IsSuccessStatusCode)
         {
             var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead);
-        
+
             user = _context.Users.FirstOrDefault(u => u.Id == user.Id);
             if (user == null) throw new Exception("User is null, before its not: " + user);
             user.TokenLeft--;
@@ -174,6 +174,7 @@ public class HomeController : Controller
         var scriptExecutions = _context.ScriptExecutions
             .Where(s => s.User == user)
             .Include(item => item.Statuses)
+            .Reverse()
             .ToList();
         return View(scriptExecutions);
     }
