@@ -283,7 +283,10 @@ public class NikeBrtService : BackgroundService
         foreach (var script in scriptToBeRefunded)
         {
             if (script.User == null) continue;
+            _logger.LogInformation("Refunding user {Id} for NikeBrt {NikeBrtId}", script.User.Id, script.Id);
+            _logger.LogInformation("User has {TokenLeft} adding {TokenUsed}", script.User.TokenLeft, script.TokenUsed);
             script.User.TokenLeft += script.TokenUsed;
+
             script.TokenUsed = 0;
             await context.SaveChangesAsync(stoppingToken);
         }
