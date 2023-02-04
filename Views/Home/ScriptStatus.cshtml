@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Script Statuses";
-    Layout = "_Main";
+    Layout = "_Layout";
 }
 
 
@@ -11,7 +11,6 @@
         <h1 class="title">
             Script Statuses
         </h1>
-        <button class="button light">Button</button>
     </div>
 </section>
 
@@ -67,7 +66,7 @@
                                 }
                             </td>
                             <td data-label="Progress" class="progress-cell @(scriptExecution.IsFinished ? (scriptExecution.IsSuccess ? "success" : "failed") : "running")">
-                                <progress max="100" value="@(scriptExecution.Progress*100)">@(scriptExecution.Progress*100)</progress>
+                                <progress max="100" value="@((int)scriptExecution.Progress*100)">@((int)(scriptExecution.Progress*100))</progress>
                             </td>
                             <td data-label="Last Update">
                                 <small class="text-gray-500" title="@scriptExecution.DateModified">@scriptExecution.DateModified</small>
@@ -77,16 +76,12 @@
                             </td>
                             <td class="actions-cell">
                                 <div class="buttons right nowrap">
-                                    <button class="button small green --jb-modal" data-target="sample-modal-2" type="button">
+                                    <a class="button small green" type="button" href="@Url.Action("ScriptStatusDetail", "Home", new {id = scriptExecution.Id})">
                                         <span class="icon">
                                             <i class="mdi mdi-eye"></i>
                                         </span>
-                                    </button>
-                                    <button class="button small red --jb-modal" data-target="sample-modal" type="button">
-                                        <span class="icon">
-                                            <i class="mdi mdi-trash-can"></i>
-                                        </span>
-                                    </button>
+                                    </a>
+                            
                                 </div>
                             </td>
                         </tr>

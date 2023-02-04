@@ -41,7 +41,20 @@ public class CheckoutController : Controller
         List<SessionDiscountOptions>? discounts = null;
         if (promotionCode != null)
         {
-            
+            //resolve to id
+            var promotionCodeListOptions = new PromotionCodeListOptions
+            {
+                Limit = 1,
+                Code = promotionCode,
+            };
+            var promotionCodeService = new PromotionCodeService();
+            var promotionCodes = await promotionCodeService.ListAsync(promotionCodeListOptions);
+            if (promotionCodes.Data.Count == 0)
+            {
+                ViewData["ErrorMessage"] = "Invalid promotion code.";
+                return View("Index");
+            }
+            promotionCode = promotionCodes.Data[0].Id;
             discounts = new List<SessionDiscountOptions>
             {
                 new SessionDiscountOptions
@@ -78,7 +91,7 @@ public class CheckoutController : Controller
         }
         catch (StripeException e)
         {
-            ViewData["Error"] = e.Message;
+            ViewData["ErrorMessage"] = e.Message;
             return View("Index");
         }
     }

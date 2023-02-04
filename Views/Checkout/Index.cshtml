@@ -2,7 +2,67 @@
 
 @{
     ViewData["Title"] = "Checkout";
-    Layout = "_Main";
+    Layout = "_Layout";
 }
 
+
+
+<section class="is-hero-bar">
+    <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+        <h1 class="title">
+            Checkout
+        </h1>
+    </div>
+</section>
+
+<section class="section main-section">
+        <div class="card mb-6">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"><i class="mdi mdi-ballot"></i></span>
+                    Buy Token
+                </p>
+            </header>
+            <div class="card-content">
+                <form method="post">
+                    <div class="field">
+                        <label class="label">Amount</label>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control icons-left">
+                                    <input class="input" placeholder="Amount" type="number" name="amount">
+                                    <span class="icon left"><i class="mdi mdi-currency-usd"></i></span>
+                                </div>
+                            </div>
+                        
+                        </div>
+                        
+                    </div>
+                    <div class="field">
+                        <label class="label">Promotion Code</label>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control icons-left">
+                                    <input class="input" placeholder="Promotion Code" type="text" name="promotionCode">
+                                    <span class="icon left"><i class="mdi mdi-tag"></i></span>
+                                </div>
+                            </div>
+                        
+                        </div>
+                        
+                    </div>                    
+                    <hr>
+                    <div class="field grouped">
+                        <div class="control">
+                            <button class="button green" type="submit">
+                                Submit
+                            </button>
+                        </div>
+                       
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </section>
 

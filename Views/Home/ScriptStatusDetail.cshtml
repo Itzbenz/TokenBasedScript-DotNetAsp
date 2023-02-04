@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = Model.ScriptName ?? "Not Found";
     Layout = "_Layout";
+
 }
 
 @if (Model?.ScriptName == null)
@@ -11,7 +12,44 @@
 }
 else
 {
-    <h2 class="card-title">@Model.ScriptName - @Html.DisplayFor(model => model.DateCreated)</h2>
+    <section class="is-hero-bar notification @(Model.IsFinished ? (Model.IsSuccess ? "green" : "red") : "blue")">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+            <h1 class="title">
+                @Model.ScriptName - @Html.DisplayFor(model => model.DateCreated)
+            </h1>
+        </div>
+        <button class="button light" onclick="window.location.href = '@Url.Action("ScriptStatus", "Home")'">Back</button>
+    </section>
+    <div class="card has-table">
+    <div class="card-content">
+    <table>
+        <thead>
+        <tr>
+            <th>Log</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        @if (Model.Statuses.Count == 0)
+        {
+            <tr>
+                <td colspan="2">Pending</td>
+            </tr>
+        }
+        @foreach (var status in Model.Statuses.Reverse())
+        {
+            <tr>
+                <td data-label="Log">@status.Message</td>
+                <td data-label="Date">
+                    <small class="text-gray-500" title="@status.DateCreated">@status.DateCreated</small>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    </div>
+    </div>
     <div class="card mb-3">
         <div class="card-body">
             <h5 class="card-title">Script Status</h5>
@@ -32,18 +70,7 @@ else
             }
             <h6 class="card-subtitle mb-2 text-muted">Last Modified: @Html.DisplayFor(model => model.DateModified)</h6>
         </div>
-        @if (Model.Statuses.Count == 0)
-        {
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Not Started</h6>
-            </div>
-        }
-        @foreach (var status in Model.Statuses)
-        {
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">@status.Message</h6>
-                <p class="card-text">@Html.DisplayFor(model => status.DateCreated)</p>
-            </div>
-        }
+
+
     </div>
 }

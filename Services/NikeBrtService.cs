@@ -216,14 +216,17 @@ public class NikeBrtService : BackgroundService
 
                     //update status
                     var lastStatus = scriptExecution.Statuses.LastOrDefault();
-                    if ((order.status != null && lastStatus?.Message != order.status) ||
-                        (Math.Abs(order.progressFloat - scriptExecution.Progress) > 0.01))
+                    if (Math.Abs(order.progressFloat - scriptExecution.Progress) > 0.01)
+                    {
+                        scriptExecution.Progress = order.progressFloat;
+                        context.ScriptExecutions.Update(scriptExecution);
+                    }
+                    if ((order.status != null && lastStatus?.Message != order.status))
                     {
                         scriptExecution.Statuses.Add(new ScriptExecution.Status
                         {
                             Message = order.status,
                         });
-                        scriptExecution.Progress = order.progressFloat;
                         _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
                         context.ScriptExecutions.Update(scriptExecution);
                     }

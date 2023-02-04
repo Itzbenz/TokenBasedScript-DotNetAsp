@@ -1,4 +1,17 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Http.Extensions
+@{
+    if (User.HasClaim(c => c.Type == "urn:discord:avatar:hash"))
+    {
+        ViewData["Avatar"] = $"https://cdn.discordapp.com/avatars/{User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value}/{User.Claims.First(c => c.Type == "urn:discord:avatar:hash").Value}.png?";
+    }
+    else
+    {
+        ViewData["Avatar"] = "https://justboil.me/tailwind-admin-template/img/avatars/1.jpg";
+    }
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -8,52 +21,225 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="96x96" href="favicon.ico">
-    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true"/>
-    <style>
-    
-    /* inter-300 - latin */
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 300;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 500;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-500.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    @@font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 700;
-      font-display: swap;
-      src: local(''),
-           url('./fonts/inter-v12-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-           url('./fonts/inter-v12-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-    }
-    
-    </style>
+
+    <meta property="og:url" content="@{ Context.Request.GetEncodedUrl(); }">
+    <meta property="og:site_name" content="@Context.Request.Host.Value">
+    <meta property="og:title" content="@ViewData["Title"] - TokenBasedScript">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="@ViewData["Title"] - TokenBasedScript">
+    <link rel="stylesheet" href="~/css/main.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 </head>
 <body>
 
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
-</div>
+<header>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
+    <nav id="navbar-main" class="navbar is-fixed-top">
+        <div class="navbar-brand">
+            <a class="navbar-item mobile-aside-button">
+                <span class="icon">
+                    <i class="mdi mdi-forwardburger mdi-24px"></i>
+                </span>
+            </a>
+            <div class="navbar-item">
+                <div class="control">
+                    <input placeholder="Search everywhere..." class="input">
+                </div>
+            </div>
+        </div>
+        <div class="navbar-brand is-right">
+            <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
+                <span class="icon">
+                    <i class="mdi mdi-dots-vertical mdi-24px"></i>
+                </span>
+            </a>
+        </div>
+        <div class="navbar-menu" id="navbar-menu">
+            <div class="navbar-end">
+
+                <div class="navbar-item dropdown has-divider has-user-avatar">
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a class="navbar-link">
+                            <div class="user-avatar">
+                                <img src="@ViewData["Avatar"]" alt="@User.Identity.Name" class="rounded-full">
+                            </div>
+                            <div class="is-user-name">
+                                <span>@User.Identity.Name</span>
+                            </div>
+                            <span class="icon">
+                                <i class="mdi mdi-chevron-down"></i>
+                            </span>
+                        </a>
+
+                        <div class="navbar-dropdown">
+
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="/signout">
+                                <span class="icon">
+                                    <i class="mdi mdi-logout"></i>
+                                </span>
+                                <span>Log Out</span>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <a title="Log in" class="navbar-item desktop-icon-only" href="/sigin">
+                            <span class="icon">
+                                <i class="mdi mdi-logout"></i>
+                            </span>
+                            <span>Log out</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+</header>
+<partial name="_CookieConsentPartial"/>
+<main role="main" class="pb-3">
+
+    <aside class="aside is-placed-left is-expanded">
+        <div class="aside-tools">
+            <div>
+                Admin <b class="font-black">One</b>
+            </div>
+        </div>
+        <div class="menu is-menu-main">
+           <p class="menu-label">Scripts</p>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString() == "/" ? "active" : "--set-active-forms-html")">
+                    <a href="/">
+                        <span class="icon">
+                            <i class="mdi mdi-desktop-mac"></i>
+                        </span>
+                        <span class="menu-item-label">Home</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <ul class="menu-list">
+               
+                <li class="@(Context.Request.Path.ToString() == "/ScriptStatus" ? "active" : "--set-active-forms-html")">
+                    <a href="/ScriptStatus">
+                        <span class="icon">
+                            <i class="mdi mdi-table"></i>
+                        </span>
+                        <span class="menu-item-label">Script Status</span>
+                    </a>
+                </li>
+               
+                <li>
+                    <a class="dropdown">
+                        <span class="icon"><i class="mdi mdi-view-list"></i></span>
+                        <span class="menu-item-label">Scripts</span>
+                        <span class="icon"><i class="mdi mdi-plus"></i></span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="/script/NikeBRT">
+                                <span>Nike BRT</span>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </li>
+                <p class="menu-label">Purchase</p>
+                <li class="@(Context.Request.Path.ToString() == "/checkout" ? "active" : "--set-active-forms-html")">
+                    <a href="/checkout">
+                        <span class="icon">
+                            <i class="mdi mdi-credit-card-outline"></i>
+                        </span>
+                        <span class="menu-item-label">Buy Token</span>
+                    </a>
+                </li>
+
+           
+            </ul>
+            <p class="menu-label">About</p>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString().ToLower() == "/privacy" ? "active" : "--set-active-forms-html")">
+                    <a href="/Privacy" class="has-icon">
+                        <span class="icon">
+                            <i class="mdi mdi-lock"></i>
+                        </span>
+                        <span class="menu-item-label">Privacy</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+
+    @if (ViewData["ErrorMessage"] != null)
+    {
+        <div class="notification red">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["ErrorMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+    @if (ViewData["SuccessMessage"] != null)
+    {
+        <div class="notification green">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["SuccessMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+    @if (ViewData["InfoMessage"] != null)
+    {
+        <div class="notification blue">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["InfoMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+
+
+
+
+    @RenderBody()
+</main>
+
+<partial name="_FooterPartial"/>
+
+<!-- Scripts below are for demo only -->
+<script type="text/javascript" src="js/main.min.js?v=1628755089081"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script type="text/javascript" src="js/chart.sample.min.js"></script>
+
+
+<noscript>
+    <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=658339141622648&ev=PageView&noscript=1"/>
+</noscript>
+
+<!-- Icons below are for demo only. Feel free to use any icon pack. Docs: https://bulma.io/documentation/elements/icon/ -->
+<link rel="stylesheet" href="https://cdn.materialdesignicons.com/4.9.95/css/materialdesignicons.min.css">
+
 @await RenderSectionAsync("Scripts", false)
+
 </body>
 </html>
