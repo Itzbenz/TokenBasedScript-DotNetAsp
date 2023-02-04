@@ -21,56 +21,33 @@ else
         <button class="button light" onclick="window.location.href = '@Url.Action("ScriptStatus", "Home")'">Back</button>
     </section>
     <div class="card has-table">
-    <div class="card-content">
-    <table>
-        <thead>
-        <tr>
-            <th>Log</th>
-            <th>Date</th>
-        </tr>
-        </thead>
-        <tbody>
+        <div class="card-content">
+            <table>
+                <thead>
+                <tr>
+                    <th>Log</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
 
-        @if (Model.Statuses.Count == 0)
-        {
-            <tr>
-                <td colspan="2">Pending</td>
-            </tr>
-        }
-        @foreach (var status in Model.Statuses.Reverse())
-        {
-            <tr>
-                <td data-label="Log">@status.Message</td>
-                <td data-label="Date">
-                    <small class="text-gray-500" title="@status.DateCreated">@status.DateCreated</small>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-    </div>
-    </div>
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">Script Status</h5>
-            @if (Model.IsFinished)
-            {
-                @if (Model.IsSuccess)
+                @if (Model.Statuses.Count == 0)
                 {
-                    <p class="card-text">Success</p>
+                    <tr>
+                        <td colspan="2">Pending</td>
+                    </tr>
                 }
-                else
+                @foreach (var status in Model.Statuses.Reverse())
                 {
-                    <p class="card-text">Failed</p>
+                    <tr>
+                        <td data-label="Log">@status.Message</td>
+                        <td data-label="Date">
+                            <small class="text-gray-500" title="@status.DateCreated">@status.DateCreated</small>
+                        </td>
+                    </tr>
                 }
-            }
-            else
-            {
-                <p class="card-text">Running</p>
-            }
-            <h6 class="card-subtitle mb-2 text-muted">Last Modified: @Html.DisplayFor(model => model.DateModified)</h6>
+                </tbody>
+            </table>
         </div>
-
-
     </div>
 }
