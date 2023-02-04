@@ -1195,55 +1195,55 @@ progress{
     overflow:hidden
 }
 
-td.success progress::-webkit-progress-bar{
+.success progress::-webkit-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(229,231,235,var(--tw-bg-opacity))
 }
-td.success progress::-webkit-progress-value{
+.success progress::-webkit-progress-value{
     --tw-bg-opacity:1;
     background-color:rgba(16,185,129,var(--tw-bg-opacity))
 }
-td.success progress::-moz-progress-bar{
+.success progress::-moz-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(16,185,129,var(--tw-bg-opacity))
 }
-td.success progress::-ms-fill{
+.success progress::-ms-fill{
     --tw-bg-opacity:1;
     background-color:rgba(16,185,129,var(--tw-bg-opacity));
     border-width:0
 }
 
-td.failed progress::-webkit-progress-bar{
+.failed progress::-webkit-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(229,231,235,var(--tw-bg-opacity))
 }
-td.failed progress::-webkit-progress-value{
+.failed progress::-webkit-progress-value{
     --tw-bg-opacity:1;
     background-color:rgba(239,68,68,var(--tw-bg-opacity))
 }
-td.failed progress::-moz-progress-bar{
+.failed progress::-moz-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(239,68,68,var(--tw-bg-opacity))
 }
-td.failed progress::-ms-fill{
+.failed progress::-ms-fill{
     --tw-bg-opacity:1;
     background-color:rgba(239,68,68,var(--tw-bg-opacity));
     border-width:0
 }
 
-td.running progress::-webkit-progress-bar{
+.running progress::-webkit-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(229,231,235,var(--tw-bg-opacity))
 }
-td.running progress::-webkit-progress-value{
+.running progress::-webkit-progress-value{
     --tw-bg-opacity:1;
     background-color:rgba(59,130,246,var(--tw-bg-opacity))
 }
-td.running progress::-moz-progress-bar{
+.running progress::-moz-progress-bar{
     --tw-bg-opacity:1;
     background-color:rgba(59,130,246,var(--tw-bg-opacity))
 }
-td.running progress::-ms-fill{
+.running progress::-ms-fill{
     --tw-bg-opacity:1;
     background-color:rgba(59,130,246,var(--tw-bg-opacity));
     border-width:0
