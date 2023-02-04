@@ -38,6 +38,8 @@ public class NikeOrder
 
     public string? orderNumber;
     public string? postCode;
+
+    public float progressFloat;
     public string? shipmentReference;
     public string? status;
     public VasBrtForm? vasBrtForm;
@@ -214,12 +216,14 @@ public class NikeBrtService : BackgroundService
 
                     //update status
                     var lastStatus = scriptExecution.Statuses.LastOrDefault();
-                    if (order.status != null && lastStatus?.Message != order.status)
+                    if ((order.status != null && lastStatus?.Message != order.status) ||
+                        (Math.Abs(order.progressFloat - scriptExecution.Progress) > 0.01))
                     {
                         scriptExecution.Statuses.Add(new ScriptExecution.Status
                         {
                             Message = order.status,
                         });
+                        scriptExecution.Progress = order.progressFloat;
                         _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
                         context.ScriptExecutions.Update(scriptExecution);
                     }

@@ -33,25 +33,7 @@
 <body>
 
 <header>
-    @if (User?.Identity?.IsAuthenticated ?? false)
-    {
-        <h1>Welcome, @User.Identity.Name</h1>
 
-        <p>
-            @foreach (var claim in Context.User.Claims)
-            {
-                <div><code>@claim.Type</code>: <strong>@claim.Value</strong></div>
-            }
-        </p>
-
-        <a class="btn btn-lg btn-danger" href="/signout?returnUrl=%2F">Sign out</a>
-    }
-
-    else
-    {
-        <h1>Welcome, anonymous</h1>
-        <a class="btn btn-lg btn-success" href="/signin?returnUrl=%2F">Sign in</a>
-    }
     <nav id="navbar-main" class="navbar is-fixed-top">
         <div class="navbar-brand">
             <a class="navbar-item mobile-aside-button">
@@ -91,26 +73,9 @@
                         </a>
 
                         <div class="navbar-dropdown">
-                            <a href="profile.html" class="navbar-item">
-                                <span class="icon">
-                                    <i class="mdi mdi-account"></i>
-                                </span>
-                                <span>My Profile</span>
-                            </a>
-                            <a class="navbar-item">
-                                <span class="icon">
-                                    <i class="mdi mdi-settings"></i>
-                                </span>
-                                <span>Settings</span>
-                            </a>
-                            <a class="navbar-item">
-                                <span class="icon">
-                                    <i class="mdi mdi-email"></i>
-                                </span>
-                                <span>Messages</span>
-                            </a>
+                   
                             <hr class="navbar-divider">
-                            <a class="navbar-item">
+                            <a class="navbar-item" href="/signout">
                                 <span class="icon">
                                     <i class="mdi mdi-logout"></i>
                                 </span>
@@ -135,11 +100,180 @@
 </header>
 <partial name="_CookieConsentPartial"/>
 <main role="main" class="pb-3">
+
+    <aside class="aside is-placed-left is-expanded">
+        <div class="aside-tools">
+            <div>
+                Admin <b class="font-black">One</b>
+            </div>
+        </div>
+        <div class="menu is-menu-main">
+            <p class="menu-label">General</p>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString() == "/" ? "active" : "--set-active-forms-html")">
+                    <a href="/">
+                        <span class="icon">
+                            <i class="mdi mdi-desktop-mac"></i>
+                        </span>
+                        <span class="menu-item-label">Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+            <p class="menu-label">Examples</p>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString() == "/ScriptStatus" ? "active" : "--set-active-forms-html")">
+                    <a href="/ScriptStatus">
+                        <span class="icon">
+                            <i class="mdi mdi-table"></i>
+                        </span>
+                        <span class="menu-item-label">Script Status</span>
+                    </a>
+                </li>
+                <li class="@(Context.Request.Path.ToString() == "/checkout" ? "active" : "--set-active-forms-html")">
+                    <a href="/checkout">
+                        <span class="icon">
+                            <i class="mdi mdi-square-edit-outline"></i>
+                        </span>
+                        <span class="menu-item-label">Buy Token</span>
+                    </a>
+                </li>
+                <li class="--set-active-profile-html">
+                    <a href="profile.html">
+                        <span class="icon">
+                            <i class="mdi mdi-account-circle"></i>
+                        </span>
+                        <span class="menu-item-label">Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="login.html">
+                        <span class="icon">
+                            <i class="mdi mdi-lock"></i>
+                        </span>
+                        <span class="menu-item-label">Login</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown">
+                        <span class="icon">
+                            <i class="mdi mdi-view-list"></i>
+                        </span>
+                        <span class="menu-item-label">Submenus</span>
+                        <span class="icon">
+                            <i class="mdi mdi-plus"></i>
+                        </span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a href="#void">
+                                <span>Sub-item One</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#void">
+                                <span>Sub-item Two</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="menu-label">About</p>
+            <ul class="menu-list">
+                <li>
+                    <a href="https://justboil.me" onclick="alert('Coming soon'); return false" target="_blank" class="has-icon">
+                        <span class="icon">
+                            <i class="mdi mdi-credit-card-outline"></i>
+                        </span>
+                        <span class="menu-item-label">Premium Demo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://justboil.me/tailwind-admin-templates" class="has-icon">
+                        <span class="icon">
+                            <i class="mdi mdi-help-circle"></i>
+                        </span>
+                        <span class="menu-item-label">About</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/justboil/admin-one-tailwind" class="has-icon">
+                        <span class="icon">
+                            <i class="mdi mdi-github-circle"></i>
+                        </span>
+                        <span class="menu-item-label">GitHub</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <section class="is-title-bar">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+            <ul>
+                @foreach (var path in Context.Request.Path.ToString().Split("/"))
+                {
+                    <li>@path</li>
+                }
+            </ul>
+            <a class="button blue" href="https://justboil.me/" onclick="alert('Coming soon'); return false"
+               target="_blank">
+                <span class="icon">
+                    <i class="mdi mdi-credit-card-outline"></i>
+                </span>
+                <span>Premium Demo</span>
+            </a>
+        </div>
+    </section>
+    @if (ViewData["ErrorMessage"] != null)
+    {
+        <div class="notification red">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["ErrorMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+    @if (ViewData["SuccessMessage"] != null)
+    {
+        <div class="notification green">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["SuccessMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+    @if (ViewData["InfoMessage"] != null)
+    {
+        <div class="notification blue">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+                <div>
+                    <span class="icon">
+                        <i class="mdi mdi-buffer"></i>
+                    </span>
+                    <b>@ViewData["InfoMessage"]</b>
+                </div>
+                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+            </div>
+        </div>
+    }
+  
+
+
+
     @RenderBody()
 </main>
 
-
-@Html.Partial("_Footer")
+<partial name="_FooterPartial"/>
 
 <!-- Scripts below are for demo only -->
 <script type="text/javascript" src="js/main.min.js?v=1628755089081"></script>
@@ -148,18 +282,6 @@
 <script type="text/javascript" src="js/chart.sample.min.js"></script>
 
 
-<script>
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', '658339141622648');
-  fbq('track', 'PageView');
-</script>
 <noscript>
     <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=658339141622648&ev=PageView&noscript=1"/>
 </noscript>

@@ -202,6 +202,7 @@ public class HomeController : Controller
         return View(scriptExecution);
     }
 
+    [Authorize(Policy = "LoggedIn")]
     public async Task<IActionResult> Index()
     {
         User? user = await _giveUser.GetUser();

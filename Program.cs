@@ -1,16 +1,12 @@
 using System.Security.Claims;
-using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TokenBasedScript.Data;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity;
 using TokenBasedScript.Models;
 using TokenBasedScript.Services;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +32,10 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     // This lambda determines whether user consent for non-essential 
     // cookies is needed for a given request.
-    options.CheckConsentNeeded = context => true;
+    options.CheckConsentNeeded = context =>
+    {
+        return true;
+    };
 
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
@@ -44,8 +43,6 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
     })
     .AddCookie(options =>
     {
@@ -57,6 +54,7 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = builder.Configuration["Discord:Client:ID"];
         options.ClientSecret = builder.Configuration["Discord:Client:Secret"];
         options.AccessDeniedPath = "/";
+        options.CallbackPath = "/signin-discord";
         options.Scope.Add("identify");
         options.Scope.Add("email");
         options.Events = new OAuthEvents()
