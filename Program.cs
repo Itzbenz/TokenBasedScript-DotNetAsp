@@ -128,15 +128,15 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseCookiePolicy(new CookiePolicyOptions
-    {
-        MinimumSameSitePolicy = SameSiteMode.Lax
-    });
+ 
 }
 
 
 app.UseStaticFiles();
-app.UseCookiePolicy();
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Lax
+});
 app.UseRouting();
 
 
