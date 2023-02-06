@@ -120,12 +120,14 @@ public class ScriptController : Controller
         var response = await Client.PostAsync(nikeBrtBackendUrl + "/orders", content);
         if (response.IsSuccessStatusCode)
         {
-            var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead);
+            var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
-                user = _context.Users.FirstOrDefault(u => u.Id == user.Id);
-                if (user == null) throw new Exception("User is null, before its not: " + user);
-                user.TokenLeft--;
+                await _context.Users.Where(u => u.Id == user.Id)
+                    .ExecuteUpdateAsync(s =>
+                        s.SetProperty(u => u.TokenLeft, u => u.TokenLeft - 1)
+                    );
+
                 _context.ScriptExecutions.Add(new ScriptExecution
                 {
                     Id = scriptExecutionId + "",
@@ -134,11 +136,9 @@ public class ScriptController : Controller
                     TokenUsed = 1,
                     User = user,
                 });
-                _context.Update(user);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-
-                ViewData["InfoMessage"] = "Queued";
+                ViewData["InfoMessage"] = "Queue";
             }
             catch (Exception e)
             {

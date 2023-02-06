@@ -1,5 +1,4 @@
 using System.Data;
-using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using TokenBasedScript.Data;
@@ -295,7 +294,7 @@ public class NikeBrtService : BackgroundService
 
     private async Task WorkRefund(MvcContext context, CancellationToken stoppingToken)
     {
-        if (DateTime.Now - _lastRefund < TimeSpan.FromMinutes(1)) return;
+        if (DateTime.Now - _lastRefund < TimeSpan.FromMinutes(1)) return; 
         _lastRefund = DateTime.Now;
         await using var transaction =
             await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
@@ -311,24 +310,21 @@ public class NikeBrtService : BackgroundService
             {
                 return;
             }
-
+            
             foreach (var script in scriptToBeRefunded)
             {
                 if (script.User == null) continue;
-                script.User = context.Users.FirstOrDefault(x => x.Id == script.User.Id);
-                if (script.User == null) continue;
-                Debug.Assert(script != null, nameof(script) + " != null");
-                _logger.LogInformation("Refunding user {Id} for NikeBrt {NikeBrtId}", script.User.Id, script.Id);
-                _logger.LogInformation("User has {TokenLeft} adding {TokenUsed}", script.User.TokenLeft,
-                    script.TokenUsed);
-                script.User.TokenLeft += script.TokenUsed;
+                //add TokenLeft
+                await context.Users.Where(x => x.Id == script.User.Id).ExecuteUpdateAsync(s => 
+                    s.SetProperty(x => x.TokenLeft, x => x.TokenLeft + script.TokenUsed), cancellationToken: stoppingToken);
 
-                script.TokenUsed = 0;
-                context.ScriptExecutions.Update(script);
-                context.Users.Update(script.User);
+                //set to 0
+                await context.ScriptExecutions.Where(x => x.Id == script.Id).ExecuteUpdateAsync(s => 
+                    s.SetProperty(x => x.TokenUsed, 0), cancellationToken: stoppingToken);
+                
                 await context.SaveChangesAsync(stoppingToken);
             }
-
+            
             await transaction.CommitAsync(stoppingToken);
         }
         catch (Exception e)
