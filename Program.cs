@@ -138,7 +138,7 @@ app.UseAuthorization();
 app.UseStatusCodePagesWithReExecute("/Error/Error{0}");
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    MinimumSameSitePolicy = SameSiteMode.Lax
+    MinimumSameSitePolicy = SameSiteMode.None
 });
 app.MapControllerRoute(
     "default",
