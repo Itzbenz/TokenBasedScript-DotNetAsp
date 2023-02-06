@@ -221,6 +221,7 @@ public class NikeBrtService : BackgroundService
                         scriptExecution.Progress = order.progressFloat;
                         context.ScriptExecutions.Update(scriptExecution);
                     }
+
                     if ((order.status != null && lastStatus?.Message != order.status))
                     {
                         scriptExecution.Statuses.Add(new ScriptExecution.Status
@@ -281,24 +282,37 @@ public class NikeBrtService : BackgroundService
         _lastRefund = DateTime.Now;
         await using var transaction =
             await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
-        _logger.LogInformation("Refunding Failed Execution of NikeBrt");
-        var scriptToBeRefunded = context.ScriptExecutions
-            .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.IsFinished && x.User != null)
-            .Include(x => x.User)
-            .ToList();
-
-        foreach (var script in scriptToBeRefunded)
+        try
         {
-            if (script.User == null) continue;
-            script.User = context.Users.FirstOrDefault(x => x.Id == script.User.Id);
-            _logger.LogInformation("Refunding user {Id} for NikeBrt {NikeBrtId}", script.User.Id, script.Id);
-            _logger.LogInformation("User has {TokenLeft} adding {TokenUsed}", script.User.TokenLeft, script.TokenUsed);
-            script.User.TokenLeft += script.TokenUsed;
+            _logger.LogInformation("Refunding Failed Execution of NikeBrt");
+            var scriptToBeRefunded = context.ScriptExecutions
+                .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.IsFinished && x.User != null)
+                .Include(x => x.User)
+                .ToList();
+            if (scriptToBeRefunded.Count == 0)
+            {
+                return;
+            }
 
-            script.TokenUsed = 0;
-            await context.SaveChangesAsync(stoppingToken);
+            foreach (var script in scriptToBeRefunded)
+            {
+                if (script.User == null) continue;
+                script.User = context.Users.FirstOrDefault(x => x.Id == script.User.Id);
+                if (script.User == null) continue;
+                _logger.LogInformation("Refunding user {Id} for NikeBrt {NikeBrtId}", script.User.Id, script.Id);
+                _logger.LogInformation("User has {TokenLeft} adding {TokenUsed}", script.User.TokenLeft,
+                    script.TokenUsed);
+                script.User.TokenLeft += script.TokenUsed;
+
+                script.TokenUsed = 0;
+                await context.SaveChangesAsync(stoppingToken);
+            }
+
+            await transaction.CommitAsync(stoppingToken);
         }
-
-        await transaction.CommitAsync(stoppingToken);
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync(stoppingToken);
+        }
     }
 }
