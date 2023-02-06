@@ -123,7 +123,15 @@ if (!app.Environment.IsDevelopment())
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
     });
-    
+    app.UseHsts();
+
+}
+else
+{
+    app.UseCookiePolicy(new CookiePolicyOptions
+    {
+        MinimumSameSitePolicy = SameSiteMode.Lax
+    });
 }
 
 
@@ -136,10 +144,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStatusCodePagesWithReExecute("/Error/Error{0}");
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    MinimumSameSitePolicy = SameSiteMode.None
-});
+
 app.MapControllerRoute(
     "default",
     "{controller=Home}/{action=Index}/{id?}");
