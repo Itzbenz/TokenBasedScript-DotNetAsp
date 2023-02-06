@@ -56,22 +56,22 @@ public class AuthenticationController : Controller
 
     [HttpGet("/signout")]
     [HttpPost("/signout")]
-    public async Task<IActionResult> SignOutCurrentUserAsync()
+    public Task<IActionResult> SignOutCurrentUserAsync()
     {
         // Instruct the cookies middleware to delete the local cookie created
         // when the user agent is redirected from the external identity provider
         // after a successful authentication flow (e.g Google or Facebook).
         //await _signInManager.SignOutAsync();
-        return SignOut(new AuthenticationProperties {RedirectUri = "/"},
-            CookieAuthenticationDefaults.AuthenticationScheme);
+        return Task.FromResult<IActionResult>(SignOut(new AuthenticationProperties {RedirectUri = "/"},
+            CookieAuthenticationDefaults.AuthenticationScheme));
     }
 
 
     [HttpGet("/login")]
-    public async Task<IActionResult> LoginAsync([FromQuery] string ReturnUrl = "/")
+    public Task<IActionResult> LoginAsync([FromQuery] string ReturnUrl = "/")
     {
         //sign in
         //await _signInManager.SignInAsync(user, true);
-        return Redirect(ReturnUrl);
+        return Task.FromResult<IActionResult>(Redirect(ReturnUrl));
     }
 }

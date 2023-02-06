@@ -25,9 +25,9 @@ public class CheckoutController : Controller
     private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
 
     [Authorize(Policy = "LoggedIn")]
-    public async Task<IActionResult> IndexAsync()
+    public Task<IActionResult> IndexAsync()
     {
-        return View("Index");
+        return Task.FromResult<IActionResult>(View("Index"));
     }
 
     [HttpPost("/{controller}")]
