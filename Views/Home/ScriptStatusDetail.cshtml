@@ -18,12 +18,12 @@ else
                 @Model.ScriptName - @Html.DisplayFor(model => model.DateCreated)
             </h1>
             <div class="progress-cell">
-                <progress max="100" value="@((int) Model.Progress * 100)">@((int) (Model.Progress * 100))</progress>
+                <progress max="100" value="@((int) (Model.Progress * 100))">@((int) (Model.Progress * 100))</progress>
             </div>
         </div>
         <button class="button light" onclick="window.location.href = '@Url.Action("ScriptStatus", "Home")'">Back</button>
     </section>
-   
+
     <div class="card has-table">
         <div class="card-content">
             <table>

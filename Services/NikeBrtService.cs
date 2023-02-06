@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using TokenBasedScript.Data;
@@ -174,68 +175,77 @@ public class NikeBrtService : BackgroundService
                 _logger.LogDebug("Found {Count} orders", orders.Count);
                 var transaction =
                     await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, stoppingToken);
-                foreach (var order in orders)
+                try
                 {
-                    var id = order.id;
-                    ids.Add(id);
-                    var scriptExecution = context.ScriptExecutions.Include(x => x.Statuses).Include(x => x.User)
-                        .FirstOrDefault(x => x.Id == id);
-                    if (scriptExecution == null)
+                    foreach (var order in orders)
                     {
-                        _logger.LogWarning("NikeBrt {Id} not found in database, external intervention?", id);
-                        continue;
-                    }
-
-                    //check if finished event
-                    if (order.status == "success" && !scriptExecution.IsFinished)
-                    {
-                        scriptExecution.IsSuccess = true;
-                        scriptExecution.IsFinished = true;
-                        context.ScriptExecutions.Update(scriptExecution);
-                    }
-                    else if (order.failed && !scriptExecution.IsFinished)
-                    {
-                        scriptExecution.IsSuccess = false;
-                        scriptExecution.IsFinished = true;
-                        //resolve user
-
-                        //refund user
-                        if (scriptExecution.User != null)
+                        var id = order.id;
+                        ids.Add(id);
+                        var scriptExecution = context.ScriptExecutions.Include(x => x.Statuses).Include(x => x.User)
+                            .FirstOrDefault(x => x.Id == id);
+                        if (scriptExecution == null)
                         {
-                            _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
-                                scriptExecution.User.Id, id);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("NikeBrt {Id} has no user associated", id);
+                            _logger.LogWarning("NikeBrt {Id} not found in database, external intervention?", id);
+                            continue;
                         }
 
-                        context.ScriptExecutions.Update(scriptExecution);
-                    }
-
-
-                    //update status
-                    var lastStatus = scriptExecution.Statuses.LastOrDefault();
-                    if (Math.Abs(order.progressFloat - scriptExecution.Progress) > 0.01)
-                    {
-                        scriptExecution.Progress = order.progressFloat;
-                        context.ScriptExecutions.Update(scriptExecution);
-                    }
-
-                    if ((order.status != null && lastStatus?.Message != order.status))
-                    {
-                        scriptExecution.Statuses.Add(new ScriptExecution.Status
+                        //check if finished event
+                        if (order.status == "success" && !scriptExecution.IsFinished)
                         {
-                            Message = order.status,
-                        });
-                        _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
-                        context.ScriptExecutions.Update(scriptExecution);
+                            scriptExecution.IsSuccess = true;
+                            scriptExecution.IsFinished = true;
+                            context.ScriptExecutions.Update(scriptExecution);
+                        }
+                        else if (order.failed && !scriptExecution.IsFinished)
+                        {
+                            scriptExecution.IsSuccess = false;
+                            scriptExecution.IsFinished = true;
+                            //resolve user
+
+                            //refund user
+                            if (scriptExecution.User != null)
+                            {
+                                _logger.LogInformation("Refunded user {Id} for NikeBrt {NikeBrtId}",
+                                    scriptExecution.User.Id, id);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("NikeBrt {Id} has no user associated", id);
+                            }
+
+                            context.ScriptExecutions.Update(scriptExecution);
+                        }
+
+
+                        //update status
+                        var lastStatus = scriptExecution.Statuses.LastOrDefault();
+                        if (Math.Abs(order.progressFloat - scriptExecution.Progress) > 0.01)
+                        {
+                            scriptExecution.Progress = order.progressFloat;
+                            context.ScriptExecutions.Update(scriptExecution);
+                        }
+
+                        if ((order.status != null && lastStatus?.Message != order.status))
+                        {
+                            scriptExecution.Statuses.Add(new ScriptExecution.Status
+                            {
+                                Message = order.status,
+                            });
+                            _logger.LogInformation("NikeBrt {Id} status updated to {Status}", id, order.status);
+                            context.ScriptExecutions.Update(scriptExecution);
+                        }
                     }
+
+
+                    await context.SaveChangesAsync(stoppingToken);
+                    await transaction.CommitAsync(stoppingToken);
                 }
-
-
-                await context.SaveChangesAsync(stoppingToken);
-                await transaction.CommitAsync(stoppingToken);
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error while updating NikeBrt orders");
+                    await transaction.RollbackAsync(stoppingToken);
+                    throw e;
+                }
             }
             else
             {
@@ -251,27 +261,34 @@ public class NikeBrtService : BackgroundService
             _logger.LogInformation("Cleaning stalled executions");
             await using var transaction =
                 await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, stoppingToken);
-
-            //clean stalled executions
-            var stalledExecutions = context.ScriptExecutions
-                .Where(x => !x.IsFinished && x.ScriptName == "NikeBRT")
-                .ToList();
-
-            foreach (var scriptExecution in stalledExecutions)
+            try
             {
-                if (scriptExecution.IsFinished)
+                //clean stalled executions
+                var stalledExecutions = context.ScriptExecutions
+                    .Where(x => !x.IsFinished && x.ScriptName == "NikeBRT")
+                    .ToList();
+
+                foreach (var scriptExecution in stalledExecutions)
                 {
-                    _logger.LogWarning("NikeBrt {Id} is already finished", scriptExecution.Id);
+                    if (scriptExecution.IsFinished)
+                    {
+                        _logger.LogWarning("NikeBrt {Id} is already finished", scriptExecution.Id);
+                    }
+
+                    if (ids.Contains(scriptExecution.Id)) continue;
+                    scriptExecution.IsFinished = true;
+                    scriptExecution.IsSuccess = false;
+                    await context.SaveChangesAsync(stoppingToken);
                 }
 
-                if (ids.Contains(scriptExecution.Id)) continue;
-                scriptExecution.IsFinished = true;
-                scriptExecution.IsSuccess = false;
-                await context.SaveChangesAsync(stoppingToken);
+
+                await transaction.CommitAsync(stoppingToken);
             }
-
-
-            await transaction.CommitAsync(stoppingToken);
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while cleaning stalled NikeBrt executions");
+                await transaction.RollbackAsync(stoppingToken);
+            }
         }
     }
 
@@ -288,6 +305,7 @@ public class NikeBrtService : BackgroundService
             var scriptToBeRefunded = context.ScriptExecutions
                 .Where(x => x.TokenUsed > 0 && !x.IsSuccess && x.IsFinished && x.User != null)
                 .Include(x => x.User)
+                .AsNoTracking()
                 .ToList();
             if (scriptToBeRefunded.Count == 0)
             {
@@ -299,12 +317,15 @@ public class NikeBrtService : BackgroundService
                 if (script.User == null) continue;
                 script.User = context.Users.FirstOrDefault(x => x.Id == script.User.Id);
                 if (script.User == null) continue;
+                Debug.Assert(script != null, nameof(script) + " != null");
                 _logger.LogInformation("Refunding user {Id} for NikeBrt {NikeBrtId}", script.User.Id, script.Id);
                 _logger.LogInformation("User has {TokenLeft} adding {TokenUsed}", script.User.TokenLeft,
                     script.TokenUsed);
                 script.User.TokenLeft += script.TokenUsed;
 
                 script.TokenUsed = 0;
+                context.ScriptExecutions.Update(script);
+                context.Users.Update(script.User);
                 await context.SaveChangesAsync(stoppingToken);
             }
 

@@ -11,8 +11,9 @@ using TokenBasedScript.Models;
 using TokenBasedScript.Services;
 
 namespace TokenBasedScript.Controllers;
+
 [Authorize(Policy = "LoggedIn")]
-public class ScriptController  : Controller
+public class ScriptController : Controller
 {
     private static readonly HttpClient Client = new HttpClient();
     private readonly IConfiguration _config;
@@ -21,7 +22,8 @@ public class ScriptController  : Controller
     private readonly IGiveUser _giveUser;
     private readonly ILogger<ScriptController> _logger;
 
-    public ScriptController(MvcContext context, ILogger<ScriptController> logger, IGiveUser giveUser, IConfiguration config)
+    public ScriptController(MvcContext context, ILogger<ScriptController> logger, IGiveUser giveUser,
+        IConfiguration config)
     {
         _logger = logger;
         _context = context;
@@ -76,8 +78,8 @@ public class ScriptController  : Controller
             if (postCode == null) sb.Append("postCode, ");
             if (town == null) sb.Append("town, ");
             if (district == null) sb.Append("district, ");
-            
-            
+
+
             ViewData["ErrorMessage"] = sb.ToString().Substring(0, sb.Length - 2);
             return View(user);
         }
@@ -119,23 +121,33 @@ public class ScriptController  : Controller
         if (response.IsSuccessStatusCode)
         {
             var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead);
-
-            user = _context.Users.FirstOrDefault(u => u.Id == user.Id);
-            if (user == null) throw new Exception("User is null, before its not: " + user);
-            user.TokenLeft--;
-            _context.ScriptExecutions.Add(new ScriptExecution
+            try
             {
-                Id = scriptExecutionId + "",
-                ScriptName = "NikeBRT",
-                ScriptContent = scriptContent,
-                TokenUsed = 1,
-                User = user,
-            });
-            _context.Update(user);
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                user = _context.Users.FirstOrDefault(u => u.Id == user.Id);
+                if (user == null) throw new Exception("User is null, before its not: " + user);
+                user.TokenLeft--;
+                _context.ScriptExecutions.Add(new ScriptExecution
+                {
+                    Id = scriptExecutionId + "",
+                    ScriptName = "NikeBRT",
+                    ScriptContent = scriptContent,
+                    TokenUsed = 1,
+                    User = user,
+                });
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            ViewData["InfoMessage"] = "Queued";
+                ViewData["InfoMessage"] = "Queued";
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                ViewData["ErrorMessage"] = "Something went wrong";
+                _logger.LogError(e, "Something went wrong");
+                return View(user);
+            }
+
             return Redirect("/ScriptStatus/" + scriptExecutionId);
         }
         else
