@@ -54,11 +54,13 @@ public class ScriptController : Controller
             ViewData["ErrorMessage"] = "Script not found";
             return View("Index");
         }
-        if(scriptExecution.ScriptContent == null)
+
+        if (scriptExecution.ScriptContent == null)
         {
             ViewData["ErrorMessage"] = "Script content not found";
             return View("Index");
         }
+
         switch (scriptExecution.ScriptName)
         {
             case "NikeBRT":
@@ -67,15 +69,27 @@ public class ScriptController : Controller
                     ViewData["ErrorMessage"] = "NikeBRT Executor is currently offline";
                     return View("Index");
                 }
+
                 var scriptContent = scriptExecution.ScriptContent;
-                long scriptExecutionId = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                scriptContent = scriptContent.Replace(scriptExecution.Id, scriptExecutionId.ToString());
-                return await _NikeBRT(scriptContent, scriptExecutionId, user);
+                //long scriptExecutionId = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                //scriptContent = scriptContent.Replace(scriptExecution.Id, scriptExecutionId.ToString());
+                //return await _NikeBRT(scriptContent, scriptExecutionId, user);
+                
+                var order = JsonConvert.DeserializeObject<NikeOrder>(scriptContent);
+                if (order == null)
+                {
+                    ViewData["ErrorMessage"] = "Script content not found";
+                    return View("Index");
+                }
+                
+                ViewBag.Order = order;
+                return View("NikeBrt", user);
                 break;
             default:
                 ViewData["ErrorMessage"] = "Script type not supported to replay: " + scriptExecution.ScriptName;
                 break;
         }
+
         return View("Index");
     }
 
@@ -102,6 +116,7 @@ public class ScriptController : Controller
             ViewData["ErrorMessage"] = "You don't have enough tokens";
             return View(user);
         }
+
         if (!NikeBrtService.Online)
         {
             ViewData["ErrorMessage"] = "NikeBRT Executor is currently offline";
@@ -136,6 +151,7 @@ public class ScriptController : Controller
             ViewData["ErrorMessage"] = "Please enter a valid email";
             return View(user);
         }
+
         long scriptExecutionId = DateTimeOffset.Now.ToUnixTimeMilliseconds();
         var scriptContent = JsonConvert.SerializeObject(new
         {
@@ -165,7 +181,6 @@ public class ScriptController : Controller
 
     private async Task<IActionResult> _NikeBRT(string scriptContent, long scriptExecutionId, User user)
     {
-      
         string? nikeBrtBackendUrl = _config.GetValue<string>("Script:NikeBRT:Backend:URL");
         var content = new StringContent(scriptContent, Encoding.UTF8, "application/json");
         Client.DefaultRequestHeaders.Accept.Clear();
