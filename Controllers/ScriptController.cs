@@ -37,6 +37,48 @@ public class ScriptController : Controller
     }
 
 
+    public async Task<IActionResult> ScriptReplay(string id)
+    {
+        User? user = await _giveUser.GetUser();
+        if (user is not {TokenLeft: > 0})
+        {
+            ViewData["ErrorMessage"] = "You don't have enough tokens";
+            return View("Index");
+        }
+
+        ScriptExecution? scriptExecution = await _context.ScriptExecutions
+            .Where(x => x.User == user)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (scriptExecution == null)
+        {
+            ViewData["ErrorMessage"] = "Script not found";
+            return View("Index");
+        }
+        if(scriptExecution.ScriptContent == null)
+        {
+            ViewData["ErrorMessage"] = "Script content not found";
+            return View("Index");
+        }
+        switch (scriptExecution.ScriptName)
+        {
+            case "NikeBRT":
+                if (!NikeBrtService.Online)
+                {
+                    ViewData["ErrorMessage"] = "NikeBRT Executor is currently offline";
+                    return View("Index");
+                }
+                var scriptContent = scriptExecution.ScriptContent;
+                long scriptExecutionId = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                scriptContent = scriptContent.Replace(scriptExecution.Id, scriptExecutionId.ToString());
+                return await _NikeBRT(scriptContent, scriptExecutionId, user);
+                break;
+            default:
+                ViewData["ErrorMessage"] = "Script type not supported to replay: " + scriptExecution.ScriptName;
+                break;
+        }
+        return View("Index");
+    }
+
     [HttpGet]
     public async Task<IActionResult> NikeBrtAsync()
     {
@@ -55,7 +97,11 @@ public class ScriptController : Controller
         string? district)
     {
         User? user = await _giveUser.GetUser();
-        if (user is not {TokenLeft: > 0}) return RedirectToAction("Index", "Home");
+        if (user is not {TokenLeft: > 0})
+        {
+            ViewData["ErrorMessage"] = "You don't have enough tokens";
+            return View(user);
+        }
         if (!NikeBrtService.Online)
         {
             ViewData["ErrorMessage"] = "NikeBRT Executor is currently offline";
@@ -90,11 +136,7 @@ public class ScriptController : Controller
             ViewData["ErrorMessage"] = "Please enter a valid email";
             return View(user);
         }
-
-        string? nikeBrtBackendUrl = _config.GetValue<string>("Script:NikeBRT:Backend:URL");
         long scriptExecutionId = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        Client.DefaultRequestHeaders.Accept.Clear();
-        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         var scriptContent = JsonConvert.SerializeObject(new
         {
             id = scriptExecutionId,
@@ -116,7 +158,19 @@ public class ScriptController : Controller
                 }
             }
         });
+
+
+        return await _NikeBRT(scriptContent, scriptExecutionId, user);
+    }
+
+    private async Task<IActionResult> _NikeBRT(string scriptContent, long scriptExecutionId, User user)
+    {
+      
+        string? nikeBrtBackendUrl = _config.GetValue<string>("Script:NikeBRT:Backend:URL");
         var content = new StringContent(scriptContent, Encoding.UTF8, "application/json");
+        Client.DefaultRequestHeaders.Accept.Clear();
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
         var response = await Client.PostAsync(nikeBrtBackendUrl + "/orders", content);
         if (response.IsSuccessStatusCode)
         {
@@ -150,12 +204,9 @@ public class ScriptController : Controller
 
             return Redirect("/ScriptStatus/" + scriptExecutionId);
         }
-        else
-        {
-            ViewData["ErrorMessage"] = "Something went wrong";
-        }
 
-        return View(user);
-        //go back home
+        ViewData["ErrorMessage"] = "Something went wrong";
+
+        return View("NikeBrt", user);
     }
 }

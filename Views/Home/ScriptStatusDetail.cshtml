@@ -21,9 +21,27 @@ else
                 <progress max="100" value="@((int) (Model.Progress * 100))">@((int) (Model.Progress * 100))</progress>
             </div>
         </div>
+        
+        <button class="button green --jb-modal"  data-target="replay-modal">Replay</button>
         <button class="button light" onclick="window.location.href = '@Url.Action("ScriptStatus", "Home")'">Back</button>
+         
     </section>
-
+    <div class="modal" id="replay-modal">
+        <div class="modal-background --jb-modal-close"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Replay Script</p>
+            </header>
+            <section class="modal-card-body">
+                <p>Are you sure you want to replay this script?</p>
+                <p>@Model.ScriptName @Model.DateCreated<p/>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button --jb-modal-close">Cancel</button>
+                <a href="@Url.Action("ScriptReplay","Script", new {id = Model.Id})" class="button blue --jb-modal-close">Confirm</a>
+            </footer>
+        </div>
+    </div>
     <div class="card has-table">
         <div class="card-content">
             <table>

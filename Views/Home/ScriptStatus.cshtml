@@ -66,7 +66,7 @@
                                 }
                             </td>
                             <td data-label="Progress" class="progress-cell @(scriptExecution.IsFinished ? (scriptExecution.IsSuccess ? "success" : "failed") : "running")">
-                                <progress max="100" value="@((int) (scriptExecution.Progress * 100))">@((int)(scriptExecution.Progress*100))</progress>
+                                <progress max="100" value="@((int) (scriptExecution.Progress * 100))">@((int) (scriptExecution.Progress * 100))</progress>
                             </td>
                             <td data-label="Last Update">
                                 <small class="text-gray-500" title="@scriptExecution.DateModified">@scriptExecution.DateModified</small>
@@ -74,14 +74,38 @@
                             <td data-label="Created">
                                 <small class="text-gray-500" title="@scriptExecution.DateCreated">@scriptExecution.DateCreated</small>
                             </td>
+
                             <td class="actions-cell">
+
+
                                 <div class="buttons right nowrap">
+                                    <button class="button small blue --jb-modal" data-target="@scriptExecution.Id-modal"
+                                            type="button">
+                                        <span class="icon">
+                                            <i class="mdi mdi-replay"></i>
+                                        </span>
+                                    </button>
+                                    <div class="modal" id="@scriptExecution.Id-modal">
+                                        <div class="modal-background --jb-modal-close"></div>
+                                        <div class="modal-card">
+                                            <header class="modal-card-head">
+                                                <p class="modal-card-title">Replay Script</p>
+                                            </header>
+                                            <section class="modal-card-body">
+                                                <p>Are you sure you want to replay this script?</p>
+                                                <p>@scriptExecution.ScriptName @scriptExecution.DateCreated<p/>
+                                            </section>
+                                            <footer class="modal-card-foot">
+                                                <button class="button --jb-modal-close">Cancel</button>
+                                                <a href="@Url.Action("ScriptReplay","Script", new {id = scriptExecution.Id})" class="button blue --jb-modal-close">Confirm</a>
+                                            </footer>
+                                        </div>
+                                    </div>
                                     <a class="button small green" type="button" href="@Url.Action("ScriptStatusDetail", "Home", new {id = scriptExecution.Id})">
                                         <span class="icon">
                                             <i class="mdi mdi-eye"></i>
                                         </span>
                                     </a>
-                            
                                 </div>
                             </td>
                         </tr>
