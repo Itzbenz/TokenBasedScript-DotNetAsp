@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using TokenBasedScript.Data;
@@ -141,13 +142,16 @@ public class CheckoutController : Controller
     {
         //find by snowflake
         var transaction = await _context.Database.BeginTransactionAsync();
-        var user = _context.Users.FirstOrDefault(u => u.Snowflake == clientReferenceId);
-        if (user?.Snowflake == null)
-            throw new Exception("User not found: " + clientReferenceId);
+      
         foreach (var item in lineItems)
         {
             if (item.Description != "Token") continue;
-            user.TokenLeft += item.Quantity ?? 0;
+            await _context.Users.
+                Where(x => x.Snowflake == clientReferenceId)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(user => user.TokenLeft, user => user.TokenLeft + item.Quantity)
+                    );
+
             await _context.SaveChangesAsync();
         }
         
