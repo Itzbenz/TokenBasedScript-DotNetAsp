@@ -259,7 +259,17 @@
                         </div>
                     </li>
                 </ul>
-                
+                <ul class="menu-list">
+                    <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Users") ? "active" : "--set-active-forms-html")">
+                        <a href="@Url.Action("Index", "Users")" class="--jb-modal" data-target="remove-token-modal" type="button">
+                            <span class="icon">
+                                <i class="mdi mdi-account-multiple"></i>
+                            </span>
+                            <span class="menu-item-label">Users</span>
+                        </a>
+                        
+                    </li>
+                </ul>
             }
             <p class="menu-label">About</p>
             <ul class="menu-list">
