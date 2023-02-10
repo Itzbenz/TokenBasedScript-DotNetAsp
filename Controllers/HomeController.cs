@@ -24,35 +24,6 @@ public class HomeController : Controller
     }
 
 
-    [HttpGet("AddToken")]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> BuyTokenAsync()
-    {
-        User? user = await _giveUser.GetUser();
-        if (user != null)
-        {
-            user.TokenLeft++;
-            await _context.SaveChangesAsync();
-        }
-
-        //go back home
-        return RedirectToAction("Index", "Home");
-    }
-
-    [HttpGet("UseToken")]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> UseTokenAsync()
-    {
-        User? user = await _giveUser.GetUser();
-        if (user != null)
-        {
-            user.TokenLeft--;
-            await _context.SaveChangesAsync();
-        }
-
-        //go back home
-        return RedirectToAction("Index", "Home");
-    }
 
     [Authorize(Policy = "LoggedIn")]
     [HttpGet("ScriptStatus")]
