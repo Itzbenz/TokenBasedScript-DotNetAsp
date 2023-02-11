@@ -33,6 +33,32 @@
 </head>
 <body>
 
+@{
+    /**
+      <div class="jumbotron">
+    @if (User?.Identity?.IsAuthenticated ?? false)
+    {
+        <h1>Welcome, @User.Identity.Name</h1>
+
+        <p>
+            @foreach (var claim in Context.User.Claims)
+            {
+                <div><code>@claim.Type</code>: <strong>@claim.Value</strong></div>
+            }
+        </p>
+
+        <a class="btn btn-lg btn-danger" href="/signout?returnUrl=%2F">Sign out</a>
+    }
+
+    else
+    {
+        <h1>Welcome, anonymous</h1>
+        <a class="btn btn-lg btn-success" href="/signin?returnUrl=%2F">Sign in</a>
+    }
+</div>
+     */
+}
+
 <header>
 
     <nav id="navbar-main" class="navbar is-fixed-top">
@@ -43,9 +69,7 @@
                 </span>
             </a>
             <div class="navbar-item">
-                <div class="control">
-                    <input placeholder="Search everywhere..." class="input">
-                </div>
+       
             </div>
         </div>
         <div class="navbar-brand is-right">
@@ -156,10 +180,87 @@
                         <span class="menu-item-label">Buy Token</span>
                     </a>
                 </li>
-
-           
             </ul>
-            <!--
+            @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+            {
+                <p class="menu-label">Admin</p>
+                <ul class="menu-list">
+                    <li class="--set-active-forms-html">
+                        <a href="#" class="--jb-modal" data-target="add-token-modal" type="button">
+                            <span class="icon">
+                                <i class="mdi mdi-plus"></i>
+                            </span>
+                            <span class="menu-item-label">Add Token</span>
+                        </a>
+                        <div class="modal" id="add-token-modal">
+
+                            <div class="modal-background --jb-modal-close"></div>
+                            <div class="modal-card">
+                                <form method="post" action="@Url.Action("AddToken", "Admin")">
+                                    <header class="modal-card-head">
+                                        <p class="modal-card-title">Add Token</p>
+                                    </header>
+                                    <section class="modal-card-body">
+                                        <div class="field">
+                                            <label class="label">Amount</label>
+                                            <div class="control">
+                                                <input class="input" type="number" name="amount" placeholder="Amount">
+                                            </div>
+                                        </div>
+                                    </section>
+                                    <footer class="modal-card-foot">
+                                        <button class="button --jb-modal-close">Cancel</button>
+                                        <button type="submit" class="button blue --jb-modal-close">Confirm</button>
+                                    </footer>
+                                </form>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="menu-list">
+                    <li class="--set-active-forms-html">
+                        <a href="#" class="--jb-modal" data-target="remove-token-modal" type="button">
+                            <span class="icon">
+                                <i class="mdi mdi-minus"></i>
+                            </span>
+                            <span class="menu-item-label">Remove Token</span>
+                        </a>
+                        <div class="modal" id="remove-token-modal">
+                            <div class="modal-background --jb-modal-close"></div>
+                            <div class="modal-card">
+                                <form method="post" action="@Url.Action("RemoveToken", "Admin")">
+                                    <header class="modal-card-head">
+                                        <p class="modal-card-title">Remove Token</p>
+                                    </header>
+                                    <section class="modal-card-body">
+                                        <div class="field">
+                                            <label class="label">Amount</label>
+                                            <div class="control">
+                                                <input class="input" type="number" name="amount" placeholder="Amount">
+                                            </div>
+                                        </div>
+                                    </section>
+                                    <footer class="modal-card-foot">
+                                        <button class="button --jb-modal-close">Cancel</button>
+                                        <button type="submit" class="button blue --jb-modal-close">Confirm</button>
+                                    </footer>
+                                </form>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="menu-list">
+                    <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Users") ? "active" : "--set-active-forms-html")">
+                        <a href="@Url.Action("Index", "Users")" class="--jb-modal" data-target="remove-token-modal" type="button">
+                            <span class="icon">
+                                <i class="mdi mdi-account-multiple"></i>
+                            </span>
+                            <span class="menu-item-label">Users</span>
+                        </a>
+                        
+                    </li>
+                </ul>
+            }
             <p class="menu-label">About</p>
             <ul class="menu-list">
                 <li class="@(Context.Request.Path.ToString().ToLower() == "/privacy" ? "active" : "--set-active-forms-html")">
