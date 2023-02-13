@@ -24,7 +24,6 @@ public class HomeController : Controller
     }
 
 
-
     [Authorize(Policy = "LoggedIn")]
     [HttpGet("ScriptStatus")]
     public async Task<IActionResult> ScriptStatusAsync()
@@ -56,10 +55,10 @@ public class HomeController : Controller
         }
 
         var scriptExecution = _context.ScriptExecutions
-            .Where(s => s.Id == id && s.User == user)
+            .Where(s => s.Id == id)
             .Include(item => item.Statuses)
             .FirstOrDefault();
-        if (scriptExecution is null || scriptExecution.User != user)
+        if (scriptExecution is null || (scriptExecution.User != user && !user.IsAdmin))//if user is not admin and not the owner of the script
         {
             return BadRequest();
         }
