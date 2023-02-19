@@ -1,9 +1,10 @@
+@using System.Text.RegularExpressions
 @model ScriptExecution
 
 @{
     ViewData["Title"] = Model.ScriptName ?? "Not Found";
     Layout = "_Layout";
-
+    var regex = new Regex(@"[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?");
 }
 
 @if (Model?.ScriptName == null)
@@ -21,10 +22,10 @@ else
                 <progress max="100" value="@((int) (Model.Progress * 100))">@((int) (Model.Progress * 100))</progress>
             </div>
         </div>
-        
-        <button class="button green --jb-modal"  data-target="replay-modal">Replay</button>
+
+        <button class="button green --jb-modal" data-target="replay-modal">Replay</button>
         <button class="button light" onclick="window.location.href = '@Url.Action("ScriptStatus", "Home")'">Back</button>
-         
+
     </section>
     <div class="modal" id="replay-modal">
         <div class="modal-background --jb-modal-close"></div>
@@ -34,11 +35,12 @@ else
             </header>
             <section class="modal-card-body">
                 <p>Are you sure you want to replay this script?</p>
-                <p>@Model.ScriptName @Model.DateCreated<p/>
+                <p>@Model.ScriptName @Model.DateCreated
+                <p/>
             </section>
             <footer class="modal-card-foot">
                 <button class="button --jb-modal-close">Cancel</button>
-                <a href="@Url.Action("ScriptReplay","Script", new {id = Model.Id})" class="button blue --jb-modal-close">Confirm</a>
+                <a href="@Url.Action("ScriptReplay", "Script", new {id = Model.Id})" class="button blue --jb-modal-close">Confirm</a>
             </footer>
         </div>
     </div>
@@ -62,7 +64,15 @@ else
                 @foreach (var status in Model.Statuses.Reverse())
                 {
                     <tr>
-                        <td data-label="Log">@status.Message</td>
+                        @{
+                            //censor url if user dont have role admin
+                            var message = status.Message;
+                            if (message != null && !User.IsInRole("Admin"))
+                            {
+                                message = regex.Replace(message, "");
+                            }
+                        }
+                        <td data-label="Log">@message</td>
                         <td data-label="Date">
                             <small class="text-gray-500" title="@status.DateCreated">@status.DateCreated</small>
                         </td>

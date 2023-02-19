@@ -122,11 +122,13 @@ public class NikeBrtService : BackgroundService
                         }
 
                         //check if finished event
-                        if (order.status == "success" && !scriptExecution.IsFinished)
+                        if ((order.status == "success" || Math.Abs(order.progressFloat - 1) < 0.01) && !scriptExecution.IsFinished)
                         {
                             scriptExecution.IsSuccess = true;
                             scriptExecution.IsFinished = true;
                             context.ScriptExecutions.Update(scriptExecution);
+                            //delete order
+                            var deleteResponse = await Client.DeleteAsync(url + "/orders/" + id, stoppingToken);
                         }
                         else if (order.failed && !scriptExecution.IsFinished)
                         {
@@ -146,6 +148,7 @@ public class NikeBrtService : BackgroundService
                             }
 
                             context.ScriptExecutions.Update(scriptExecution);
+                            var deleteResponse = await Client.DeleteAsync(url + "/orders/" + id, stoppingToken);
                         }
 
 

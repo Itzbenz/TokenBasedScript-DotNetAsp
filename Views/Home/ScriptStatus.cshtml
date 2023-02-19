@@ -1,8 +1,11 @@
+@using System.Security.Claims
+@using System.Text.RegularExpressions
 @model List<ScriptExecution>
 
 @{
     ViewData["Title"] = "Script Statuses";
     Layout = "_Layout";
+    var regex = new Regex(@"^((https?|ftp|smtp):\/\/)?(www.)?[a-z0-9]+\.[a-z]+(\/[a-zA-Z0-9#]+\/?)*$");
 }
 
 
@@ -59,6 +62,12 @@
                             <td data-label="Last Log">
                                 @{
                                     var message = scriptExecution.Statuses.Last().Message;
+                                    if (message != null && !User.HasClaim(ClaimTypes.Role, "Admin"))
+                                    {
+                                        //Censor URL
+                                        
+                                        message = regex.Replace(message, "");
+                                    }
                                 }
                                 @if (message != null)
                                 {
