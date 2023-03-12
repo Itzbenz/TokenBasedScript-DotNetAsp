@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,7 @@ public class CheckoutController : Controller
                 ViewData["ErrorMessage"] = "Invalid promotion code.";
                 return View("Index");
             }
+
             promotionCode = promotionCodes.Data[0].Id;
             discounts = new List<SessionDiscountOptions>
             {
@@ -64,6 +66,7 @@ public class CheckoutController : Controller
                 }
             };
         }
+
         var options = new SessionCreateOptions
         {
             ClientReferenceId = clientReferenceId,
@@ -141,20 +144,27 @@ public class CheckoutController : Controller
     private async Task FulfillOrder(StripeList<LineItem> lineItems, string clientReferenceId)
     {
         //find by snowflake
-        var transaction = await _context.Database.BeginTransactionAsync();
-      
-        foreach (var item in lineItems)
+        var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            if (item.Description != "Token") continue;
-            await _context.Users.
-                Where(x => x.Snowflake == clientReferenceId)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(user => user.TokenLeft, user => user.TokenLeft + item.Quantity)
+            foreach (var item in lineItems)
+            {
+                if (item.Description != "Token") continue;
+
+                await _context.Users.Where(x => x.Snowflake == clientReferenceId)
+                    .ExecuteUpdateAsync(s =>
+                        s.SetProperty(user => user.TokenLeft, user => user.TokenLeft + item.Quantity)
                     );
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
         }
-        
-        await transaction.CommitAsync();
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw e;
+        }
     }
 }
