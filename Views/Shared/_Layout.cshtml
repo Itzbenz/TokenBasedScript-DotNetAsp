@@ -29,7 +29,7 @@
     <meta property="twitter:title" content="@ViewData["Title"] - TokenBasedScript">
     <link rel="stylesheet" href="~/css/main.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 
@@ -69,7 +69,7 @@
                 </span>
             </a>
             <div class="navbar-item">
-       
+
             </div>
         </div>
         <div class="navbar-brand is-right">
@@ -126,215 +126,234 @@
 <partial name="_CookieConsentPartial"/>
 <main role="main" class="pb-3">
 
-    <aside class="aside is-placed-left is-expanded">
-        <div class="aside-tools">
+<aside class="aside is-placed-left is-expanded">
+    <div class="aside-tools">
+        <div>
+            G <b class="font-black">SNKRS</b>
+        </div>
+    </div>
+    <div class="menu is-menu-main">
+        <p class="menu-label">Scripts</p>
+        <ul class="menu-list">
+            <li class="@(Context.Request.Path.ToString() == "/" ? "active" : "--set-active-forms-html")">
+                <a href="/">
+                    <span class="icon">
+                        <i class="mdi mdi-desktop-mac"></i>
+                    </span>
+                    <span class="menu-item-label">Home</span>
+                </a>
+            </li>
+        </ul>
+
+        <ul class="menu-list">
+
+            <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "License") ? "active" : "--set-active-forms-html")">
+                <a href="@Url.Action("Index", "License")" type="button">
+                    <span class="icon">
+                        <i class="mdi mdi-key"></i>
+                    </span>
+                    <span class="menu-item-label">Licenses</span>
+                </a>
+            </li>
+            <li class="@(Context.Request.Path.ToString() == "/ScriptStatus" ? "active" : "--set-active-forms-html")">
+                <a href="/ScriptStatus">
+                    <span class="icon">
+                        <i class="mdi mdi-table"></i>
+                    </span>
+                    <span class="menu-item-label">Script Status</span>
+                </a>
+            </li>
+            <li>
+                <a class="dropdown">
+                    <span class="icon">
+                        <i class="mdi mdi-view-list"></i>
+                    </span>
+                    <span class="menu-item-label">Scripts</span>
+                    <span class="icon">
+                        <i class="mdi mdi-plus"></i>
+                    </span>
+                </a>
+                <ul>
+                    <li>
+                        <a href="/script/NikeBRT">
+                            <span>Nike BRT</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+            <p class="menu-label">Purchase</p>
+            <li class="@(Context.Request.Path.ToString() == Url.Action("License", "Checkout") ? "active" : "--set-active-forms-html")">
+                <a href="@Url.Action("License", "Checkout")" type="button">
+                    <span class="icon">
+                        <i class="mdi mdi-key"></i>
+                    </span>
+                    <span class="menu-item-label">Buy License</span>
+                </a>
+            </li>
+            <li class="@(Context.Request.Path.ToString() == "/checkout" ? "active" : "--set-active-forms-html")">
+                <a href="/checkout">
+                    <span class="icon">
+                        <i class="mdi mdi-credit-card-outline"></i>
+                    </span>
+                    <span class="menu-item-label">Buy Token</span>
+                </a>
+            </li>
+        </ul>
+        @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+        {
+            <p class="menu-label">Admin</p>
+            <ul class="menu-list">
+                <li class="--set-active-forms-html">
+                    <a href="#" class="--jb-modal" data-target="add-token-modal" type="button">
+                        <span class="icon">
+                            <i class="mdi mdi-plus"></i>
+                        </span>
+                        <span class="menu-item-label">Add Token</span>
+                    </a>
+                    <div class="modal" id="add-token-modal">
+
+                        <div class="modal-background --jb-modal-close"></div>
+                        <div class="modal-card">
+                            <form method="post" action="@Url.Action("AddToken", "Admin")">
+                                <header class="modal-card-head">
+                                    <p class="modal-card-title">Add Token</p>
+                                </header>
+                                <section class="modal-card-body">
+                                    <div class="field">
+                                        <label class="label">Amount</label>
+                                        <div class="control">
+                                            <input class="input" type="number" name="amount" placeholder="Amount">
+                                        </div>
+                                    </div>
+                                </section>
+                                <footer class="modal-card-foot">
+                                    <button class="button --jb-modal-close">Cancel</button>
+                                    <button type="submit" class="button blue --jb-modal-close">Confirm</button>
+                                </footer>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <ul class="menu-list">
+                <li class="--set-active-forms-html">
+                    <a href="#" class="--jb-modal" data-target="remove-token-modal" type="button">
+                        <span class="icon">
+                            <i class="mdi mdi-minus"></i>
+                        </span>
+                        <span class="menu-item-label">Remove Token</span>
+                    </a>
+                    <div class="modal" id="remove-token-modal">
+                        <div class="modal-background --jb-modal-close"></div>
+                        <div class="modal-card">
+                            <form method="post" action="@Url.Action("RemoveToken", "Admin")">
+                                <header class="modal-card-head">
+                                    <p class="modal-card-title">Remove Token</p>
+                                </header>
+                                <section class="modal-card-body">
+                                    <div class="field">
+                                        <label class="label">Amount</label>
+                                        <div class="control">
+                                            <input class="input" type="number" name="amount" placeholder="Amount">
+                                        </div>
+                                    </div>
+                                </section>
+                                <footer class="modal-card-foot">
+                                    <button class="button --jb-modal-close">Cancel</button>
+                                    <button type="submit" class="button blue --jb-modal-close">Confirm</button>
+                                </footer>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Users") ? "active" : "--set-active-forms-html")">
+                    <a href="@Url.Action("Index", "Users")" type="button">
+                        <span class="icon">
+                            <i class="mdi mdi-account-multiple"></i>
+                        </span>
+                        <span class="menu-item-label">Users</span>
+                    </a>
+
+                </li>
+            </ul>
+            <ul class="menu-list">
+                <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Settings") ? "active" : "--set-active-forms-html")">
+                    <a href="@Url.Action("Index", "Settings")" type="button">
+                        <span class="icon">
+                            <i class="mdi mdi-settings"></i>
+                        </span>
+                        <span class="menu-item-label">Settings</span>
+                    </a>
+
+                </li>
+            </ul>
+        }
+        <p class="menu-label">About</p>
+        <ul class="menu-list">
+            <li class="@(Context.Request.Path.ToString().ToLower() == "/privacy" ? "active" : "--set-active-forms-html")">
+                <a href="/Privacy" class="has-icon">
+                    <span class="icon">
+                        <i class="mdi mdi-lock"></i>
+                    </span>
+                    <span class="menu-item-label">Privacy</span>
+                </a>
+            </li>
+        </ul>
+
+    </div>
+</aside>
+
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <div class="notification red">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
             <div>
-                G <b class="font-black">SNKRS</b>
+                <span class="icon">
+                    <i class="mdi mdi-buffer"></i>
+                </span>
+                <b>@ViewData["ErrorMessage"]</b>
             </div>
+            <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
         </div>
-        <div class="menu is-menu-main">
-           <p class="menu-label">Scripts</p>
-            <ul class="menu-list">
-                <li class="@(Context.Request.Path.ToString() == "/" ? "active" : "--set-active-forms-html")">
-                    <a href="/">
-                        <span class="icon">
-                            <i class="mdi mdi-desktop-mac"></i>
-                        </span>
-                        <span class="menu-item-label">Home</span>
-                    </a>
-                </li>
-            </ul>
-            
-            <ul class="menu-list">
-               
-                <li class="@(Context.Request.Path.ToString() == "/ScriptStatus" ? "active" : "--set-active-forms-html")">
-                    <a href="/ScriptStatus">
-                        <span class="icon">
-                            <i class="mdi mdi-table"></i>
-                        </span>
-                        <span class="menu-item-label">Script Status</span>
-                    </a>
-                </li>
-               
-                <li>
-                    <a class="dropdown">
-                        <span class="icon"><i class="mdi mdi-view-list"></i></span>
-                        <span class="menu-item-label">Scripts</span>
-                        <span class="icon"><i class="mdi mdi-plus"></i></span>
-                    </a>
-                    <ul>
-                        <li>
-                            <a href="/script/NikeBRT">
-                                <span>Nike BRT</span>
-                            </a>
-                        </li>
-                        
-                    </ul>
-                </li>
-                <p class="menu-label">Purchase</p>
-                <li class="@(Context.Request.Path.ToString() == "/checkout" ? "active" : "--set-active-forms-html")">
-                    <a href="/checkout">
-                        <span class="icon">
-                            <i class="mdi mdi-credit-card-outline"></i>
-                        </span>
-                        <span class="menu-item-label">Buy Token</span>
-                    </a>
-                </li>
-            </ul>
-            @if (User.HasClaim(ClaimTypes.Role, "Admin"))
-            {
-                <p class="menu-label">Admin</p>
-                <ul class="menu-list">
-                    <li class="--set-active-forms-html">
-                        <a href="#" class="--jb-modal" data-target="add-token-modal" type="button">
-                            <span class="icon">
-                                <i class="mdi mdi-plus"></i>
-                            </span>
-                            <span class="menu-item-label">Add Token</span>
-                        </a>
-                        <div class="modal" id="add-token-modal">
-
-                            <div class="modal-background --jb-modal-close"></div>
-                            <div class="modal-card">
-                                <form method="post" action="@Url.Action("AddToken", "Admin")">
-                                    <header class="modal-card-head">
-                                        <p class="modal-card-title">Add Token</p>
-                                    </header>
-                                    <section class="modal-card-body">
-                                        <div class="field">
-                                            <label class="label">Amount</label>
-                                            <div class="control">
-                                                <input class="input" type="number" name="amount" placeholder="Amount">
-                                            </div>
-                                        </div>
-                                    </section>
-                                    <footer class="modal-card-foot">
-                                        <button class="button --jb-modal-close">Cancel</button>
-                                        <button type="submit" class="button blue --jb-modal-close">Confirm</button>
-                                    </footer>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <ul class="menu-list">
-                    <li class="--set-active-forms-html">
-                        <a href="#" class="--jb-modal" data-target="remove-token-modal" type="button">
-                            <span class="icon">
-                                <i class="mdi mdi-minus"></i>
-                            </span>
-                            <span class="menu-item-label">Remove Token</span>
-                        </a>
-                        <div class="modal" id="remove-token-modal">
-                            <div class="modal-background --jb-modal-close"></div>
-                            <div class="modal-card">
-                                <form method="post" action="@Url.Action("RemoveToken", "Admin")">
-                                    <header class="modal-card-head">
-                                        <p class="modal-card-title">Remove Token</p>
-                                    </header>
-                                    <section class="modal-card-body">
-                                        <div class="field">
-                                            <label class="label">Amount</label>
-                                            <div class="control">
-                                                <input class="input" type="number" name="amount" placeholder="Amount">
-                                            </div>
-                                        </div>
-                                    </section>
-                                    <footer class="modal-card-foot">
-                                        <button class="button --jb-modal-close">Cancel</button>
-                                        <button type="submit" class="button blue --jb-modal-close">Confirm</button>
-                                    </footer>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <ul class="menu-list">
-                    <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Users") ? "active" : "--set-active-forms-html")">
-                        <a href="@Url.Action("Index", "Users")" type="button">
-                            <span class="icon">
-                                <i class="mdi mdi-account-multiple"></i>
-                            </span>
-                            <span class="menu-item-label">Users</span>
-                        </a>
-                        
-                    </li>
-                </ul>
-                <ul class="menu-list">
-                    <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Settings") ? "active" : "--set-active-forms-html")">
-                        <a href="@Url.Action("Index", "Settings")" type="button">
-                            <span class="icon">
-                                <i class="mdi mdi-settings"></i>
-                            </span>
-                            <span class="menu-item-label">Settings</span>
-                        </a>
-                        
-                    </li>
-                </ul>
-            }
-            <p class="menu-label">About</p>
-            <ul class="menu-list">
-                <li class="@(Context.Request.Path.ToString().ToLower() == "/privacy" ? "active" : "--set-active-forms-html")">
-                    <a href="/Privacy" class="has-icon">
-                        <span class="icon">
-                            <i class="mdi mdi-lock"></i>
-                        </span>
-                        <span class="menu-item-label">Privacy</span>
-                    </a>
-                </li>
-            </ul>
-         
-        </div>
-    </aside>
-
-
-    @if (ViewData["ErrorMessage"] != null)
-    {
-        <div class="notification red">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
-                <div>
-                    <span class="icon">
-                        <i class="mdi mdi-buffer"></i>
-                    </span>
-                    <b>@ViewData["ErrorMessage"]</b>
-                </div>
-                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+    </div>
+}
+@if (ViewData["SuccessMessage"] != null)
+{
+    <div class="notification green">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+            <div>
+                <span class="icon">
+                    <i class="mdi mdi-buffer"></i>
+                </span>
+                <b>@ViewData["SuccessMessage"]</b>
             </div>
+            <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
         </div>
-    }
-    @if (ViewData["SuccessMessage"] != null)
-    {
-        <div class="notification green">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
-                <div>
-                    <span class="icon">
-                        <i class="mdi mdi-buffer"></i>
-                    </span>
-                    <b>@ViewData["SuccessMessage"]</b>
-                </div>
-                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
+    </div>
+}
+@if (ViewData["InfoMessage"] != null)
+{
+    <div class="notification blue">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+            <div>
+                <span class="icon">
+                    <i class="mdi mdi-buffer"></i>
+                </span>
+                <b>@ViewData["InfoMessage"]</b>
             </div>
+            <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
         </div>
-    }
-    @if (ViewData["InfoMessage"] != null)
-    {
-        <div class="notification blue">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
-                <div>
-                    <span class="icon">
-                        <i class="mdi mdi-buffer"></i>
-                    </span>
-                    <b>@ViewData["InfoMessage"]</b>
-                </div>
-                <button class="button small textual --jb-notification-dismiss" type="button">Dismiss</button>
-            </div>
-        </div>
-    }
+    </div>
+}
 
 
 
 
-    @RenderBody()
+@RenderBody()
 </main>
 
 <partial name="_FooterPartial"/>

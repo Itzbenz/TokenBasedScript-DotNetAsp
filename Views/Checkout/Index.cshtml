@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = "Checkout";
     Layout = "_Layout";
+    if (ViewBag.License == null)
+    {
+        ViewBag.License = false;
+    }
 }
-
 
 
 <section class="is-hero-bar">
@@ -16,60 +19,72 @@
 </section>
 
 <section class="section main-section">
-        <div class="card mb-6">
-            <header class="card-header">
-                <p class="card-header-title">
-                    <span class="icon"><i class="mdi mdi-ballot"></i></span>
-                    Buy Token
-                </p>
-            </header>
-            <div class="card-content">
-                <form method="post">
+    <div class="card mb-6">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon">
+                    <i class="mdi mdi-ballot"></i>
+                </span>
+                Buy @(ViewBag.License ? "License" : "Token")
+            </p>
+        </header>
+        <div class="card-content">
+            <form asp-action="Checkout">
+                @if (!ViewBag.License)
+                {
                     <div class="field">
                         <label class="label">Amount</label>
                         <div class="field-body">
                             <div class="field">
                                 <div class="control icons-left">
-                                    <input class="input" placeholder="Amount" type="number" name="amount">
-                                    <span class="icon left"><i class="mdi mdi-currency-usd"></i></span>
+                                    <input class="input" placeholder="Amount" type="number" name="amount" aria-valuemin="1" min="1">
+                                    <span class="icon left">
+                                        <i class="mdi mdi-currency-usd"></i>
+                                    </span>
                                 </div>
                             </div>
-                        
                         </div>
-                        
                     </div>
-                    <div class="field">
-                        <label class="label">Promotion Code</label>
-                        <div class="field-body">
-                            <div class="field">
-                                <div class="control icons-left">
-                                    <input class="input" placeholder="Promotion Code" type="text" name="promotionCode">
-                                    <span class="icon left"><i class="mdi mdi-tag"></i></span>
-                                </div>
+                }
+                <input name="isLicense" type="hidden" value="@ViewBag.License.ToString()"/>
+                <div class="field">
+                    <label class="label">Promotion Code</label>
+                    <div class="field-body">
+                        <div class="field">
+                            <div class="control icons-left">
+                                <input class="input" placeholder="Promotion Code" type="text" name="promotionCode">
+                                <span class="icon left">
+                                    <i class="mdi mdi-tag"></i>
+                                </span>
                             </div>
-                        
                         </div>
-                        
-                    </div>                    
-                    <hr>
-                    <div class="field grouped">
-                        <div class="control">
-                            <button class="button green" type="submit">
-                                Submit
-                            </button>
-                        </div>
-                       
+
                     </div>
-                </form>
-            </div>
+
+                </div>
+                <hr>
+                <div class="field grouped">
+                    <div class="control">
+                        <button class="button green" type="submit">
+                            Submit
+                        </button>
+                    </div>
+
+                </div>
+            </form>
         </div>
-          <header class="card-header">
-                <p class="card-header-title">
-                    <span class="icon"><i class="mdi mdi-ballot"></i></span>
-                    A credit is 2 euros. With a credit you can redirect a shipment.
-                </p>
-            </header>
+    </div>
+    <header class="card-header">
+        @if (!ViewBag.License)
+        {
+            <p class="card-header-title">
+                <span class="icon">
+                    <i class="mdi mdi-ballot"></i>
+                </span>
+                A credit is 2 euros. With a credit you can redirect a shipment.
+            </p>
+        }
+    </header>
 
 
-    </section>
-
+</section>

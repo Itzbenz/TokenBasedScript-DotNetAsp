@@ -14,6 +14,7 @@ public class MvcContext : IdentityDbContext<User>
     public new DbSet<User> Users { get; set; }
     public DbSet<ScriptExecution> ScriptExecutions { get; set; }
     public DbSet<Settings> Settings { get; set; }
+    public DbSet<License> Licenses { get; set; }
 
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = new())
@@ -48,4 +49,6 @@ public class MvcContext : IdentityDbContext<User>
                     auditableEntity.Property(p => p.DateCreated).IsModified = false;
             }
     }
+
+    
 }

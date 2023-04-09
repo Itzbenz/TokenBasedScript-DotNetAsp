@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TokenBasedScript.Data;
 
@@ -10,9 +11,11 @@ using TokenBasedScript.Data;
 namespace TokenBasedScript.Migrations
 {
     [DbContext(typeof(MvcContext))]
-    partial class MvcContextModelSnapshot : ModelSnapshot
+    [Migration("20230409142508_Licenses")]
+    partial class Licenses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -336,9 +339,6 @@ namespace TokenBasedScript.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("Snowflake")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("StripeCustomerId")
                         .HasColumnType("longtext");
 
                     b.Property<long>("TokenLeft")

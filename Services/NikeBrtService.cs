@@ -20,16 +20,14 @@ public class NikeBrtService : BackgroundService
 
     public static bool Running = false;
     private static bool _online = false;
-    private readonly IAppConfigService _config;
     private readonly ILogger _logger;
     private IServiceProvider Services { get; }
     private DateTime _lastClean, _lastRefund = DateTime.Now;
 
-    public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IAppConfigService config)
+    public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger)
     {
         Services = services;
         _logger = logger;
-        _config = config;
     }
 
    
@@ -42,15 +40,19 @@ public class NikeBrtService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var url = _config.Get<string>(Settings.ScriptNikeBrtBackendUrl);
+  
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetService<MvcContext>();
+        var appConfig = scope.ServiceProvider.GetService<IAppConfigService>();
+        if (context == null)
+            throw new Exception("Could not get MvcContext from DI");
+        if (appConfig == null)
+            throw new Exception("Could not get AppConfigService");
+        var url = appConfig.Get<string>(Settings.ScriptNikeBrtBackendUrl);
         if (url == null)
             throw new Exception("Nike Brt Script Queue URL is not set in configuration");
         _logger.LogInformation("Nike Brt Script Queue is running");
         _logger.LogInformation("Nike Brt Script Queue URL: {Url}", url);
-        using var scope = Services.CreateScope();
-        var context = scope.ServiceProvider.GetService<MvcContext>();
-        if (context == null)
-            throw new Exception("Could not get MvcContext from DI");
         Online = true;
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -60,7 +62,8 @@ public class NikeBrtService : BackgroundService
 
             try
             {
-                await Work(context, url, stoppingToken);
+                url = appConfig.Get<string>(Settings.ScriptNikeBrtBackendUrl) ?? "";
+                await Work(context, appConfig, url, stoppingToken);
                 if (!Online)
                 {
                     _logger.LogInformation("Nike Brt Script is online");
@@ -94,7 +97,7 @@ public class NikeBrtService : BackgroundService
     }
 
     //TODO cache this
-    private async Task Work(MvcContext context, string url, CancellationToken stoppingToken)
+    private async Task Work(MvcContext context, IAppConfigService appConfig,  string url, CancellationToken stoppingToken)
     {
         var ids = new List<string>();
 

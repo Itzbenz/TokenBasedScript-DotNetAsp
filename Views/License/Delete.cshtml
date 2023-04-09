@@ -1,0 +1,76 @@
+@model TokenBasedScript.Models.License
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "_Default";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>License</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Code)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Code)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ExternalId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ExternalId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Hwid)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Hwid)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DeviceName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DeviceName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IpHash)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IpHash)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DateModifiedIpHash)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DateModifiedIpHash)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DateModifiedHwid)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DateModifiedHwid)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DateCreated)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DateCreated)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DateModified)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DateModified)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>

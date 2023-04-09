@@ -1,0 +1,176 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<TokenBasedScript.Models.License>
+
+@{
+    ViewData["Title"] = "License";
+    Layout = "_Layout";
+}
+
+<section class="is-hero-bar">
+    <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+        <h1 class="title">
+            License
+        </h1>
+        <div class="flex flex-row space-x-4">
+            @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+            {
+                <a class="button light" asp-action="Create">
+                    <span class="icon">
+                        <i class="mdi mdi-plus"></i>
+                    </span>
+                    <span>Create License</span>
+                </a>
+            }
+            <a target="_blank" class="button blue mr-4" asp-controller="Checkout" asp-action="License">
+                <span class="icon">
+                    <i class="mdi mdi-cart-plus"></i>
+                </span>
+                <span>Add License</span>
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<section class="section main-section">
+
+    <div class="card has-table">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon">
+                    <i class="mdi mdi-account-multiple"></i>
+                </span>
+                License
+            </p>
+            <a class="card-header-icon" href="#">
+                <span class="icon">
+                    <i class="mdi mdi-reload"></i>
+                </span>
+            </a>
+        </header>
+        @if (Model.Any())
+        {
+            <div class="card-content">
+                <table>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Code)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.DeviceName)
+                        </th>
+                        @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+                        {
+                            <th>
+                                @Html.DisplayNameFor(model => model.User)
+                            </th>
+                        }
+                        <th>
+                            @Html.DisplayNameFor(model => model.DateCreated)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.DateModified)
+                        </th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+
+                    @{
+                        var i = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td >@(i++)</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Code)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DeviceName)
+                            </td>
+                            @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+                            {
+                                <td>
+                                    @if (item.User != null)
+                                    {
+                                        <a asp-controller="Users" asp-action="Details" asp-route-id="@item.User.Id">
+                                            @Html.DisplayFor(modelItem => item.User.UserName)
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="tag is-danger">Not Assigned</span>
+                                    }
+                                </td>
+                            }
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DateCreated)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DateModified)
+                            </td>
+
+                            <td class="actions-cell">
+
+
+                                <div class="buttons right nowrap">
+                                    @if (User.HasClaim(ClaimTypes.Role, "Admin"))
+                                    {
+                                        <a class="button small blue" asp-action="Details" asp-route-id="@item.Id">
+                                            <span class="icon">
+                                                <i class="mdi mdi-eye"></i>
+                                            </span>
+                                        </a>
+                                        <a class="button small yellow" asp-action="Edit" asp-route-id="@item.Id">
+                                            <span class="icon">
+                                                <i class="mdi mdi-pencil"></i>
+                                            </span>
+                                        </a>
+
+                                        <a class="button small red" asp-action="Delete" asp-route-id="@item.Id">
+                                            <span class="icon">
+                                                <i class="mdi mdi-delete"></i>
+                                            </span>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                <!--
+                <div class="table-pagination">
+                    <div class="flex items-center justify-between">
+                        <div class="buttons">
+                            <button class="button active" type="button">1</button>
+                            <button class="button" type="button">2</button>
+                            <button class="button" type="button">3</button>
+                        </div>
+                        <small>Page 1 of 3</small>
+                    </div>
+                </div>
+                </div>
+                !-->
+            </div>
+        }
+        else
+        {
+            <div class="card empty">
+                <div class="card-content">
+                    <div>
+                        <span class="icon large">
+                            <i class="mdi mdi-emoticon-sad mdi-48px"></i>
+                        </span>
+                    </div>
+                    <p>Nothing's here…</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>

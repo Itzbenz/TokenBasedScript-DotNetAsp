@@ -51,13 +51,13 @@ public interface IAppConfigService
 
 public class AppConfigService : IAppConfigService
 {
+    private readonly MvcContext _context;
     private readonly IConfiguration _configuration;
-    private readonly IServiceScope _scope;
-    private MvcContext Context => _scope.ServiceProvider.GetRequiredService<MvcContext>();
+    
     private static bool _isSynced;
-    public AppConfigService(IServiceProvider context, IConfiguration configuration)
+    public AppConfigService(MvcContext context, IConfiguration configuration)
     {
-        _scope = context.CreateScope();
+        _context = context;
         _configuration = configuration;
     }
 
@@ -91,14 +91,14 @@ public class AppConfigService : IAppConfigService
         }
         
         //synchronize database
-        var dbSettings = Context.Settings.ToList();
+        var dbSettings = _context.Settings.ToList();
         foreach (var dbSetting in dbSettings)
         {
             var setting = settings.FirstOrDefault(s => s.Name == dbSetting.Name);
             //remove extra settings    
             if (setting == null)
             {
-                Context.Settings.Remove(dbSetting);
+                _context.Settings.Remove(dbSetting);
                 continue;
             }
             
@@ -115,10 +115,10 @@ public class AppConfigService : IAppConfigService
         //add new settings
         foreach (var setting in settings.Where(setting => dbSettings.FirstOrDefault(s => s.Name == setting.Name) == null))
         {
-            Context.Settings.Add(setting);
+            _context.Settings.Add(setting);
         }
         
-        Context.SaveChanges();
+        _context.SaveChanges();
     }
     
     public T? Get<T>(Settings settings, T? defaultValue=default)
@@ -130,7 +130,7 @@ public class AppConfigService : IAppConfigService
         //only support primitive types
         if(!typeof(T).IsPrimitive && typeof(T) != typeof(string))
             throw new Exception("Only support primitive types got " + typeof(T).Name + " for " + key);
-        var setting = Context.Settings.FirstOrDefault(s => s.Name == key);
+        var setting = _context.Settings.FirstOrDefault(s => s.Name == key);
         if (setting == null)
         {
             throw new Exception("Setting not found: " + key);
@@ -164,7 +164,7 @@ public class AppConfigService : IAppConfigService
         var key = attr.Name;
         if(!typeof(T).IsPrimitive && typeof(T) != typeof(string)) 
             throw new Exception("Only support primitive types got " + typeof(T).Name + " for " + key);
-        var setting = Context.Settings.FirstOrDefault(s => s.Name == key);
+        var setting = _context.Settings.FirstOrDefault(s => s.Name == key);
         if (setting == null)
         {
             throw new Exception("Setting not found: " + key);
@@ -176,7 +176,7 @@ public class AppConfigService : IAppConfigService
             throw new Exception("Setting type mismatch: " + key + " expect " + setting.Type + " but got " + typeof(T).Name);
         }
         setting.ValueString = value?.ToString();
-        Context.SaveChanges();
+        _context.SaveChanges();
     }
     
 }

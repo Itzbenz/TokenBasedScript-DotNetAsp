@@ -105,7 +105,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddSingleton<IAppConfigService, AppConfigService>();
+builder.Services.AddScoped<IAppConfigService, AppConfigService>();
 builder.Services.AddScoped<IGiveUser, GiveUser>();
 builder.Services.AddHostedService<NikeBrtService>();
 var app = builder.Build();
