@@ -8,18 +8,28 @@ namespace TokenBasedScript.Services;
 
 public enum Settings
 {
-
-    [Setting(Name = "Script Nike BRT Backend URL", Type = typeof(string), DefaultValue = "http://localhost:3000")]
+/**
+ *   "Script:NikeBRT:Backend:URL": "http://localhost:3000",
+  "AllowedHosts": "*",
+  "FreeTokenForNewUser": "0",
+  "Stripe:Price:ID": "",
+  "Stripe:Webhook:Secret": "",
+  "Stripe:API:Secret": "",
+  "Discord:Client:ID": "",
+  "Discord:Client:Secret": "",
+  "Discord:User:Admin:ID": "",
+ */
+    [Setting(Name = "Script Nike BRT Backend URL", Type = typeof(string), AppSettingsKey = "Script:NikeBRT:Backend:URL", DefaultValue = "http://localhost:3000")]
     ScriptNikeBrtBackendUrl,
-    [Setting(Name = "Free Token For New User", Type = typeof(int), DefaultValue = 0)]
+    [Setting(Name = "Free Token For New User", Type = typeof(int), AppSettingsKey = "FreeTokenForNewUser", DefaultValue = 0)]
     FreeTokenForNewUser,
-    [Setting(Name = "Stripe Price ID For NikeBRT", Type = typeof(string))]
-    StripePriceIdForNikeBrt,
+    [Setting(Name = "Stripe Price ID For Token", Type = typeof(string),  AppSettingsKey = "Stripe:Price:ID")]
+    StripePriceIdForToken,
     [Setting(Name = "Stripe Price ID For License", Type = typeof(string))]
     StripePriceIdForLicense,
-    [Setting(Name = "Stripe Webhook Secret", Type = typeof(string))]
+    [Setting(Name = "Stripe Webhook Secret", Type = typeof(string), AppSettingsKey = "Stripe:Webhook:Secret")]
     StripeWebhookSecret,
-    [Setting(Name = "Stripe API Secret", Type = typeof(string))]
+    [Setting(Name = "Stripe API Secret", Type = typeof(string), AppSettingsKey = "Stripe:API:Secret")]
     StripeApiSecret,
 
 
@@ -28,7 +38,8 @@ public enum Settings
 public class Setting : Attribute
 {
     public string Name { get; set; } = null!;
-    public Type Type { get; set; } = null!;
+    public string? AppSettingsKey { get; set; }
+    public Type Type { get; set; } = typeof(string);
     public object? DefaultValue { get; set; }
 }
 
@@ -40,42 +51,54 @@ public interface IAppConfigService
 
 public class AppConfigService : IAppConfigService
 {
-    private readonly MvcContext _context;
+    private readonly IConfiguration _configuration;
+    private readonly IServiceScope _scope;
+    private MvcContext Context => _scope.ServiceProvider.GetRequiredService<MvcContext>();
     private static bool _isSynced;
-    public AppConfigService(MvcContext context)
+    public AppConfigService(IServiceProvider context, IConfiguration configuration)
     {
-        _context = context;
-        if (_isSynced) return;
-        Sync();
-        _isSynced = true;
+        _scope = context.CreateScope();
+        _configuration = configuration;
     }
 
+    private T? GetDefaultValue<T>(Setting attr)
+    {
+        if (attr.DefaultValue == null && attr.AppSettingsKey == null) return default;
+        var appSettingsValue = _configuration[attr.AppSettingsKey!];
+        if (appSettingsValue == null) return (T?) Convert.ChangeType(attr.DefaultValue, typeof(T));
+        return (T?) Convert.ChangeType(appSettingsValue, typeof(T));
+    }
     private void Sync()
     {
+        if (_isSynced) return;
+        _isSynced = true;
         //declare settings
         var settings = new List<Models.Settings>();
         foreach (var setting in Enum.GetValues<Settings>())
         {
-            var attribute = setting.GetType().GetCustomAttribute<Setting>();
-            
+            var attribute = setting.GetType().GetField(setting.ToString())!.GetCustomAttribute<Setting>();
             if (attribute == null) throw new Exception("Setting not found for " + setting);
+            
+            if(attribute.DefaultValue != null && attribute.Type != attribute.DefaultValue.GetType())
+                throw new Exception("Setting default value type mismatch for " + setting + " expect " + attribute.Type.Name + " but got " + attribute.DefaultValue.GetType().Name);
+           
             settings.Add(new Models.Settings
             {
                 Name = attribute.Name,
                 Type = attribute.Type.Name,
-                DefaultValueString = attribute.DefaultValue?.ToString() ?? string.Empty,
+                DefaultValueString = GetDefaultValue<string>(attribute) ?? "",
             });
         }
         
         //synchronize database
-        var dbSettings = _context.Settings.ToList();
+        var dbSettings = Context.Settings.ToList();
         foreach (var dbSetting in dbSettings)
         {
             var setting = settings.FirstOrDefault(s => s.Name == dbSetting.Name);
             //remove extra settings    
             if (setting == null)
             {
-                _context.Settings.Remove(dbSetting);
+                Context.Settings.Remove(dbSetting);
                 continue;
             }
             
@@ -85,81 +108,75 @@ public class AppConfigService : IAppConfigService
                 //update
                 dbSetting.Type = setting.Type;
                 dbSetting.ValueString = setting.DefaultValueString;
-                dbSetting.DefaultValueString = setting.DefaultValueString;
             }
-            
-            //check if settings get different default value
-            if (setting.DefaultValueString != dbSetting.DefaultValueString)
-            {
-                //update
-                dbSetting.DefaultValueString = setting.DefaultValueString;
-            }
+            dbSetting.DefaultValueString = setting.DefaultValueString;//read only
         }
         
         //add new settings
         foreach (var setting in settings.Where(setting => dbSettings.FirstOrDefault(s => s.Name == setting.Name) == null))
         {
-            _context.Settings.Add(setting);
+            Context.Settings.Add(setting);
         }
         
-        _context.SaveChanges();
+        Context.SaveChanges();
     }
     
     public T? Get<T>(Settings settings, T? defaultValue=default)
     {
-        var attr = settings.GetType().GetCustomAttribute<Setting>();
+        Sync();
+        var attr = settings.GetType().GetField(settings.ToString())!.GetCustomAttribute<Setting>();
         if (attr == null) throw new Exception("Setting not found for " + settings);
         var key = attr.Name;
         //only support primitive types
-        if(!typeof(T).IsPrimitive) throw new Exception("Only support primitive types");
-        var setting = _context.Settings.FirstOrDefault(s => s.Name == key);
+        if(!typeof(T).IsPrimitive && typeof(T) != typeof(string))
+            throw new Exception("Only support primitive types got " + typeof(T).Name + " for " + key);
+        var setting = Context.Settings.FirstOrDefault(s => s.Name == key);
         if (setting == null)
         {
             throw new Exception("Setting not found: " + key);
-        } else {
-            //assert type
-            if (setting.Type != typeof(T).Name)
-            {
-                throw new Exception("Setting type mismatch: " + key + " expect " + setting.Type + " but got " + typeof(T).Name);
-            }
+        }
+
+        //assert type
+        if (setting.Type != typeof(T).Name)
+        {
+            throw new Exception("Setting type mismatch: " + key + " expect " + setting.Type + " but got " + typeof(T).Name);
         }
 
         if (setting.ValueString != null) return (T) Convert.ChangeType(setting.ValueString, typeof(T));
         //check DefaultValue
-        if (attr.DefaultValue == null)
+        var attrDefaultValue = GetDefaultValue<string>(attr);
+        if (attrDefaultValue == null)
         {
             //use default value
             return defaultValue;
         }
-        else
-        {
-            //use DefaultValue
-            return (T) Convert.ChangeType(attr.DefaultValue, typeof(T));
-        }
+
+        //use DefaultValue
+        return (T) Convert.ChangeType(attrDefaultValue, typeof(T));
 
     }
     
     public void Set<T>(Settings settings, T value)
     {
-        var attr = settings.GetType().GetCustomAttribute<Setting>();
+        Sync();
+        var attr = settings.GetType().GetField(settings.ToString())!.GetCustomAttribute<Setting>();
         if (attr == null) throw new Exception("Setting not found for " + settings);
         var key = attr.Name;
-        if(!typeof(T).IsPrimitive) throw new Exception("Only support primitive types");
-        var setting = _context.Settings.FirstOrDefault(s => s.Name == key);
+        if(!typeof(T).IsPrimitive && typeof(T) != typeof(string)) 
+            throw new Exception("Only support primitive types got " + typeof(T).Name + " for " + key);
+        var setting = Context.Settings.FirstOrDefault(s => s.Name == key);
         if (setting == null)
         {
             throw new Exception("Setting not found: " + key);
         }
-        else
+
+        //assert type
+        if (setting.Type != typeof(T).Name)
         {
-            //assert type
-            if (setting.Type != typeof(T).Name)
-            {
-                throw new Exception("Setting type mismatch: " + key + " expect " + setting.Type + " but got " + typeof(T).Name);
-            }
-            setting.ValueString = value?.ToString();
+            throw new Exception("Setting type mismatch: " + key + " expect " + setting.Type + " but got " + typeof(T).Name);
         }
-        _context.SaveChanges();
+        setting.ValueString = value?.ToString();
+        Context.SaveChanges();
     }
     
 }

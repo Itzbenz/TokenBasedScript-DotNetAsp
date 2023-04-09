@@ -9,6 +9,7 @@ using TokenBasedScript.Models;
 using TokenBasedScript.Services;
 using Settings = TokenBasedScript.Services.Settings;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 //Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
@@ -16,15 +17,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("MvcContext")!;
+var optionsBuilder = new DbContextOptionsBuilder<MvcContext>();
 if (connectionString.StartsWith("Data Source="))
-    builder.Services.AddDbContext<MvcContext>(options =>
-        options.UseSqlite(connectionString)
-    );
+    optionsBuilder.UseSqlite(connectionString);
 else
-    builder.Services.AddDbContext<MvcContext>(options =>
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 
-builder.Services.AddSingleton<IAppConfigService>();
+builder.Services.AddScoped<MvcContext>(s => new MvcContext(optionsBuilder.Options));
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
@@ -105,7 +105,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
+builder.Services.AddSingleton<IAppConfigService, AppConfigService>();
 builder.Services.AddScoped<IGiveUser, GiveUser>();
 builder.Services.AddHostedService<NikeBrtService>();
 var app = builder.Build();

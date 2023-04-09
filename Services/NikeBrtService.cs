@@ -22,6 +22,7 @@ public class NikeBrtService : BackgroundService
     private static bool _online = false;
     private readonly IAppConfigService _config;
     private readonly ILogger _logger;
+    private IServiceProvider Services { get; }
     private DateTime _lastClean, _lastRefund = DateTime.Now;
 
     public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IAppConfigService config)
@@ -31,7 +32,7 @@ public class NikeBrtService : BackgroundService
         _config = config;
     }
 
-    private IServiceProvider Services { get; }
+   
 
     public static bool Online
     {

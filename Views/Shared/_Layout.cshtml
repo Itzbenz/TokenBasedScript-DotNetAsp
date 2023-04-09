@@ -260,6 +260,17 @@
                         
                     </li>
                 </ul>
+                <ul class="menu-list">
+                    <li class="@(Context.Request.Path.ToString() == Url.Action("Index", "Settings") ? "active" : "--set-active-forms-html")">
+                        <a href="@Url.Action("Index", "Settings")" type="button">
+                            <span class="icon">
+                                <i class="mdi mdi-settings"></i>
+                            </span>
+                            <span class="menu-item-label">Settings</span>
+                        </a>
+                        
+                    </li>
+                </ul>
             }
             <p class="menu-label">About</p>
             <ul class="menu-list">

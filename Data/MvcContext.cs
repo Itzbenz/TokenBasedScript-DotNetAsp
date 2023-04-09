@@ -7,8 +7,7 @@ namespace TokenBasedScript.Data;
 
 public class MvcContext : IdentityDbContext<User>
 {
-    public MvcContext(DbContextOptions<MvcContext> options)
-        : base(options)
+    public MvcContext(DbContextOptions<MvcContext> options) : base(options)
     {
     }
 
