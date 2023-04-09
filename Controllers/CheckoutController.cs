@@ -7,24 +7,24 @@ using Stripe.Checkout;
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 using TokenBasedScript.Services;
+using Settings = TokenBasedScript.Services.Settings;
 
 namespace TokenBasedScript.Controllers;
 
 [Authorize(Policy = "LoggedIn")]
 public class CheckoutController : Controller
 {
-    private readonly IConfiguration _config;
     private readonly MvcContext _context;
     private readonly IGiveUser _giveUser;
-
-    public CheckoutController(MvcContext context, IGiveUser giveUser, IConfiguration config)
+    private readonly IAppConfigService _appConfigService;
+    public CheckoutController(MvcContext context, IGiveUser giveUser, IAppConfigService appConfigService)
     {
         _context = context;
         _giveUser = giveUser;
-        _config = config;
+        _appConfigService = appConfigService;
     }
 
-    private string StripeWebhookSecret => _config.GetValue<string>("Stripe:Webhook:Secret");
+    private string StripeWebhookSecret => _appConfigService.Get<string>(Settings.StripeWebhookSecret, null)!;
 
     [Authorize(Policy = "LoggedIn")]
     public Task<IActionResult> IndexAsync()
@@ -41,6 +41,8 @@ public class CheckoutController : Controller
         var clientReferenceId = user.Snowflake;
         var domain = Request.Scheme + "://" + Request.Host.Value + "/";
         List<SessionDiscountOptions>? discounts = null;
+        //set API key
+        StripeConfiguration.ApiKey = _appConfigService.Get(Settings.StripeApiSecret, "");
         if (promotionCode != null)
         {
             //resolve to id
@@ -76,7 +78,7 @@ public class CheckoutController : Controller
                 new SessionLineItemOptions
                 {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    Price = _config.GetValue<string>("Stripe:Price:ID"),
+                    Price = _appConfigService.Get(Settings.StripePriceIdForNikeBrt, ""),
                     Quantity = amount,
                 },
             },

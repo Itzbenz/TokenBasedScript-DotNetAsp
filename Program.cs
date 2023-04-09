@@ -7,10 +7,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 using TokenBasedScript.Services;
+using Settings = TokenBasedScript.Services.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
+//Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -23,20 +24,12 @@ else
     builder.Services.AddDbContext<MvcContext>(options =>
         options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+builder.Services.AddSingleton<IAppConfigService>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
     options.AddPolicy("LoggedIn", policy => policy.RequireAuthenticatedUser());
 });
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    // This lambda determines whether user consent for non-essential 
-    // cookies is needed for a given request.
-    options.CheckConsentNeeded = context => true;
-
-    options.MinimumSameSitePolicy = SameSiteMode.None;
-});
-
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -61,6 +54,7 @@ builder.Services.AddAuthentication(options =>
                 //Get EF context
                 var db = context.HttpContext.RequestServices.GetRequiredService<MvcContext>();
                 var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                var appConfig = context.HttpContext.RequestServices.GetRequiredService<IAppConfigService>();
                 var snowflake = context.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
                 var user = db.Users.FirstOrDefault(u => u.Snowflake == snowflake);
                 if (user == null)
@@ -72,7 +66,7 @@ builder.Services.AddAuthentication(options =>
                         Email = context.Principal.FindFirstValue(ClaimTypes.Email),
                         EmailConfirmed = context.Principal.FindFirstValue(ClaimTypes.Email) != null,
                         UserName = context.Principal.FindFirstValue(ClaimTypes.Name),
-                        TokenLeft = builder.Configuration.GetValue("FreeTokenForNewUser", 0)
+                        TokenLeft =  appConfig.Get(Settings.FreeTokenForNewUser, 0)
                     };
                     db.Users.Add(user);
                 }
@@ -101,6 +95,14 @@ builder.Services.AddAuthentication(options =>
             }
         };
     });
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    // This lambda determines whether user consent for non-essential 
+    // cookies is needed for a given request.
+    options.CheckConsentNeeded = context => true;
+
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
 
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -114,6 +116,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -121,14 +124,10 @@ if (!app.Environment.IsDevelopment())
     //app.UseHttpsRedirection();
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
-        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto |
+                           ForwardedHeaders.XForwardedHost
     });
     app.UseHsts();
-
-}
-else
-{
- 
 }
 
 

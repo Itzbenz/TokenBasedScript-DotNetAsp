@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 using TokenBasedScript.Services;
+using Settings = TokenBasedScript.Services.Settings;
 
 namespace TokenBasedScript.Controllers;
 
@@ -16,14 +17,14 @@ namespace TokenBasedScript.Controllers;
 public class ScriptController : Controller
 {
     private static readonly HttpClient Client = new HttpClient();
-    private readonly IConfiguration _config;
+    private readonly IAppConfigService _config;
 
     private readonly MvcContext _context;
     private readonly IGiveUser _giveUser;
     private readonly ILogger<ScriptController> _logger;
 
     public ScriptController(MvcContext context, ILogger<ScriptController> logger, IGiveUser giveUser,
-        IConfiguration config)
+        IAppConfigService config)
     {
         _logger = logger;
         _context = context;
@@ -181,7 +182,7 @@ public class ScriptController : Controller
 
     private async Task<IActionResult> _NikeBRT(string scriptContent, long scriptExecutionId, User user)
     {
-        string? nikeBrtBackendUrl = _config.GetValue<string>("Script:NikeBRT:Backend:URL");
+        string? nikeBrtBackendUrl = _config.Get<string>(Settings.ScriptNikeBrtBackendUrl);
         var content = new StringContent(scriptContent, Encoding.UTF8, "application/json");
         Client.DefaultRequestHeaders.Accept.Clear();
         Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

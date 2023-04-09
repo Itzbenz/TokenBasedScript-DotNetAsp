@@ -8,18 +8,15 @@ namespace TokenBasedScript.Controllers;
 [Authorize(Policy = "AdminOnly")]
 public class AdminController : Controller
 {
-    private readonly IConfiguration _config;
-
     private readonly MvcContext _context;
     private readonly IGiveUser _giveUser;
     private readonly ILogger<AdminController> _logger;
     
-    public AdminController(MvcContext context, ILogger<AdminController> logger, IGiveUser giveUser, IConfiguration config)
+    public AdminController(MvcContext context, ILogger<AdminController> logger, IGiveUser giveUser)
     {
         _logger = logger;
         _context = context;
         _giveUser = giveUser;
-        _config = config;
     }
 
     [HttpPost]

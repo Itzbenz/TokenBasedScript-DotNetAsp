@@ -9,13 +9,11 @@ namespace TokenBasedScript.Controllers;
 [Route("/")]
 public class AuthenticationController : Controller
 {
-    private readonly IConfiguration _config;
     private readonly MvcContext _context;
 
-    public AuthenticationController(MvcContext context, IConfiguration config)
+    public AuthenticationController(MvcContext context)
     {
         _context = context;
-        _config = config;
     }
 
 

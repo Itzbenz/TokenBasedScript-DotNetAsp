@@ -20,11 +20,11 @@ public class NikeBrtService : BackgroundService
 
     public static bool Running = false;
     private static bool _online = false;
-    private readonly IConfiguration _config;
+    private readonly IAppConfigService _config;
     private readonly ILogger _logger;
     private DateTime _lastClean, _lastRefund = DateTime.Now;
 
-    public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IConfiguration config)
+    public NikeBrtService(IServiceProvider services, ILogger<NikeBrtService> logger, IAppConfigService config)
     {
         Services = services;
         _logger = logger;
@@ -41,7 +41,7 @@ public class NikeBrtService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var url = _config.GetValue<string>("Script:NikeBRT:Backend:URL");
+        var url = _config.Get<string>(Settings.ScriptNikeBrtBackendUrl);
         if (url == null)
             throw new Exception("Nike Brt Script Queue URL is not set in configuration");
         _logger.LogInformation("Nike Brt Script Queue is running");

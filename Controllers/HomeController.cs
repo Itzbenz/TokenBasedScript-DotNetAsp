@@ -10,17 +10,15 @@ namespace TokenBasedScript.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly IConfiguration _config;
     private readonly MvcContext _context;
     private readonly IGiveUser _giveUser;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(MvcContext context, ILogger<HomeController> logger, IGiveUser giveUser, IConfiguration config)
+    public HomeController(MvcContext context, ILogger<HomeController> logger, IGiveUser giveUser)
     {
         _logger = logger;
         _context = context;
         _giveUser = giveUser;
-        _config = config;
     }
 
 
