@@ -216,6 +216,15 @@ public class CheckoutController : Controller
             return BadRequest(e.Message);
         }
     }
+    
+    public static async Task<bool> LicenseStillValid(License license, IAppConfigService appConfigService)
+    {
+        if(license.ExternalId == null) return true;
+        StripeConfiguration.ApiKey =  appConfigService.Get(Settings.StripeApiSecret, "");
+        var subscriptionService = new SubscriptionService();
+        var subscription = await subscriptionService.GetAsync(license.ExternalId);
+        return subscription.Status == "active" && subscription.CurrentPeriodEnd > DateTime.UtcNow;
+    }
 
     private async Task FulfillOrder(StripeList<LineItem> lineItems, string clientReferenceId)
     {

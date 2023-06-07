@@ -31,6 +31,8 @@ public enum Settings
     StripeWebhookSecret,
     [Setting(Name = "Stripe API Secret", Type = typeof(string), AppSettingsKey = "Stripe:API:Secret")]
     StripeApiSecret,
+    [Setting(Name = "Secret to verify for token lookup", Type = typeof(string))]
+    SecretToVerifyForTokenLookup,
 
 
 }

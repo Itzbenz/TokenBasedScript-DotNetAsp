@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -15,7 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 //Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:API:Secret"];
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => { options.RespectBrowserAcceptHeader = true; })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 var connectionString = builder.Configuration.GetConnectionString("MvcContext")!;
 var optionsBuilder = new DbContextOptionsBuilder<MvcContext>();
 if (connectionString.StartsWith("Data Source="))
@@ -66,7 +71,7 @@ builder.Services.AddAuthentication(options =>
                         Email = context.Principal.FindFirstValue(ClaimTypes.Email),
                         EmailConfirmed = context.Principal.FindFirstValue(ClaimTypes.Email) != null,
                         UserName = context.Principal.FindFirstValue(ClaimTypes.Name),
-                        TokenLeft =  appConfig.Get(Settings.FreeTokenForNewUser, 0)
+                        TokenLeft = appConfig.Get(Settings.FreeTokenForNewUser, 0)
                     };
                     db.Users.Add(user);
                 }
