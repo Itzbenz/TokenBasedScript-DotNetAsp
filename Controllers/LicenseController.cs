@@ -74,10 +74,22 @@ namespace TokenBasedScript.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> Create([Bind("Id,Code,ExternalId,Hwid,DeviceName,IpHash,DateModifiedIpHash,DateModifiedHwid,DateCreated,DateModified")] License license)
+        public async Task<IActionResult> Create([Bind("Id,Code,ExternalId,Hwid,DeviceName,IpHash,DateModifiedIpHash,DateModifiedHwid,DateCreated,DateModified")] License license, [FromForm] string? UserId)
         {
             if (ModelState.IsValid)
             {
+                if(UserId != null)
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == UserId);
+                    if(user != null)
+                    {
+                        license.User = user;
+                    }
+                    else
+                    {
+                        
+                    }
+                }
                 _context.Add(license);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -108,7 +120,7 @@ namespace TokenBasedScript.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Code,ExternalId,Hwid,DeviceName,IpHash,DateModifiedIpHash,DateModifiedHwid,DateCreated,DateModified")] License license)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Code,ExternalId,Hwid,DeviceName,IpHash,DateModifiedIpHash,DateModifiedHwid,DateCreated,DateModified")] License license, [FromForm] string? UserId)
         {
             if (id != license.Id)
             {
@@ -119,6 +131,14 @@ namespace TokenBasedScript.Controllers
             {
                 try
                 {
+                    if(UserId != null)
+                    {
+                        var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == UserId);
+                        if(user != null)
+                        {
+                            license.User = user;
+                        }
+                    }
                     _context.Update(license);
                     await _context.SaveChangesAsync();
                 }

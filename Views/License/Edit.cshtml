@@ -20,6 +20,14 @@
                 <span asp-validation-for="Code" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label class="control-label">UserId</label>
+                <input name="UserId" class="form-control"/>
+                @if(!string.IsNullOrEmpty(ViewBag.UserId))
+                {
+                    <span class="text-danger">@ViewBag.UserId</span>
+                }
+            </div>
+            <div class="form-group">
                 <label asp-for="ExternalId" class="control-label"></label>
                 <input asp-for="ExternalId" class="form-control" />
                 <span asp-validation-for="ExternalId" class="text-danger"></span>
