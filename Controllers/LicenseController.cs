@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -199,7 +200,7 @@ namespace TokenBasedScript.Controllers
                 return StatusCode(400, "Missing parameters");
             }
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "localhost";
-            var sha256 = new System.Security.Cryptography.SHA256Managed();
+            var sha256 = SHA256.Create();
             var ipHash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(ip)));
             var license = await _context.Licenses.FirstOrDefaultAsync(x => x.Code == code);
             if (license == null)
@@ -214,6 +215,11 @@ namespace TokenBasedScript.Controllers
             
             if(license.Hwid != hwid)
             {
+                //check if datemodified is older than 1 day
+                if(license.DateModifiedHwid != null && license.DateModifiedHwid.Value.AddDays(1) > DateTime.Now)
+                {
+                    return StatusCode(403, "HWID mismatch");
+                }
                 license.Hwid = hwid;
                 license.DateModifiedHwid = DateTime.Now;
                 license.DeviceName = deviceName;
@@ -223,6 +229,10 @@ namespace TokenBasedScript.Controllers
             
             if(license.IpHash != ipHash)
             {
+                if(license.DateModifiedIpHash != null && license.DateModifiedIpHash.Value.AddMinutes(15) > DateTime.Now)
+                {
+                    return StatusCode(403, "IP mismatch");
+                }
                 license.IpHash = ipHash;
                 license.DateModifiedIpHash = DateTime.Now;
                 _context.Update(license);
