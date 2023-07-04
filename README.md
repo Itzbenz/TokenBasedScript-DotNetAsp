@@ -2,6 +2,8 @@
 
 - Discord OAuth
 - Stripe Integration
+- License Server
+- Asymmetric License Verification to prevent man-in-the-middle attack 
 
 ## Stripe
 - `stripe listen --forward-to localhost:5000/api/stripe/webhook`
