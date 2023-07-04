@@ -13,6 +13,6 @@ public class User : IdentityUser, ITrackableEntity
 
     public long TokenLeft { get; set; }
     public string? StripeCustomerId { get; set; }
-    public DateTime DateCreated { get; set; }
-    public DateTime DateModified { get; set; }
+    public DateTime DateCreated { get; set; }  = DateTime.Now;
+    public DateTime DateModified { get; set; }  = DateTime.Now;
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using TokenBasedScript.Data;
 using TokenBasedScript.Models;
 using TokenBasedScript.Services;
@@ -175,7 +179,7 @@ public class LicenseController : Controller
     [Route("/api/v1/validate")]
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Validate(string? hwid, string? code, string? deviceName)
+    public async Task<IActionResult> Validate(string? hwid, string? code, string? deviceName, string? nonce)
     {
         if (hwid == null || code == null || deviceName == null) return StatusCode(400, "Missing parameters");
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "localhost";
@@ -219,7 +223,30 @@ public class LicenseController : Controller
             await _context.SaveChangesAsync();
         }
 
-        return Ok(Guid.NewGuid().ToString());
+
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        //https://cryptotools.net/rsagen
+        var privateKey = _appConfigService.Get<string>(Settings.PrivateKeyForLicenseJwtSigning);
+        if(privateKey == null) return StatusCode(500, "Private key not found");
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(privateKey);
+        var key = new RsaSecurityKey(rsa);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim("code", license.Code),
+                new Claim("hwid", license.Hwid),
+                new Claim("deviceName", deviceName),
+                new Claim("nonce", nonce ?? Guid.NewGuid().ToString())//nonce is used to prevent replay attacks
+            }),
+            Expires = DateTime.UtcNow.AddMinutes(15),
+            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256Signature)
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var jwt = tokenHandler.WriteToken(token);
+        return Ok(jwt);
     }
 
     [Route("/api/v1/license/lookup")]
@@ -228,8 +255,12 @@ public class LicenseController : Controller
     public async Task<IActionResult> Lookup(string? code, string? verifyToken)
     {
         var ourToken = _appConfigService.Get<string>(Settings.SecretToVerifyForTokenLookup);
-        if (ourToken != null && ourToken != verifyToken) return StatusCode(403, new {error = "Invalid token"});
         var license = await _context.Licenses.Include(x => x.User).FirstOrDefaultAsync(x => x.Code == code);
+        if (ourToken != verifyToken && license?.Hwid != verifyToken)//allow hwid to be used as token
+        {
+            return StatusCode(403, new {error = "Invalid token"});
+        }
+        
         if (license == null) return StatusCode(404, new {error = "License not found"});
         var valid = await CheckoutController.LicenseStillValid(license, _appConfigService);
         if (!valid)
@@ -239,8 +270,9 @@ public class LicenseController : Controller
             await _context.SaveChangesAsync();
             return StatusCode(404, "License not found");
         }
-        return Ok(new {license.Id, license.DeviceName, license.User?.Snowflake});
-        
+
+        return Ok(new {license.Id, license.DeviceName, license.User?.Snowflake, license.User?.UserName});
+
     }
 
     private bool LicenseExists(int id)

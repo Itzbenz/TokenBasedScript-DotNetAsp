@@ -33,6 +33,9 @@ public enum Settings
     StripeApiSecret,
     [Setting(Name = "Secret to verify for token lookup", Type = typeof(string))]
     SecretToVerifyForTokenLookup,
+    [Setting(Name = "Private Key for License JWT Signing", Type = typeof(string))]
+    PrivateKeyForLicenseJwtSigning,
+
 
 
 }

@@ -22,7 +22,7 @@ public class AuthenticationController : Controller
     {
         var providers = await HttpContext.GetExternalProvidersAsync();
         //if only 1 provider, redirect to it
-        if (providers.Count() == 1)
+        if (providers.Length == 1)
         {
             return await SignIn(providers.First().Name, returnUrl);
         }

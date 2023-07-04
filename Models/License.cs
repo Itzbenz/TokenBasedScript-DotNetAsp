@@ -16,6 +16,6 @@ public class License : ITrackableEntity
     public DateTime? DateModifiedIpHash { get; set; }
     public DateTime? DateModifiedHwid { get; set; }
 
-    public DateTime DateCreated { get; set; }
-    public DateTime DateModified { get; set; }
+    public DateTime DateCreated { get; set; } = DateTime.Now;
+    public DateTime DateModified { get; set; } = DateTime.Now;
 }
